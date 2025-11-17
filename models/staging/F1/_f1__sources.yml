@@ -1,0 +1,611 @@
+version: 2
+
+sources:
+
+  - name: F1
+    description: >
+      Raw historical Formula 1 dataset stored in the Bronze layer. It contains
+      information about circuits, races, drivers, constructors, standings,
+      lap times, pit stops, qualifying sessions, sprint results, and status codes.
+    database: "{{ env_var('DBT_ENVIRONMENTS') }}_BRONZE_DB"
+    schema: F1
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: {count: 300, period: day}
+      error_after: {count: 365, period: day}
+
+    tables:
+
+      - name: circuits
+        description: >
+          List of Formula 1 circuits including identification, location,
+          altitude, and reference metadata.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: circuitId
+            description: Unique identifier of the circuit.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: circuitRef
+            description: Short reference or slug for the circuit.
+          - name: name
+            description: Official name of the circuit.
+          - name: location
+            description: City or locality where the circuit is located.
+          - name: country
+            description: Country where the circuit is located.
+          - name: lat
+            description: Latitude of the circuit.
+          - name: lng
+            description: Longitude of the circuit.
+          - name: alt
+            description: Altitude of the circuit above sea level (in meters).
+          - name: url
+            description: Reference URL for the circuit.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: constructor_results
+        description: >
+          Results of constructors for each race. Includes points scored and
+          basic status information.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: constructorResultsId
+            description: Unique identifier of the constructor result entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Identifier of the race associated with the result.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: constructorId
+            description: Identifier of the constructor.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'constructors')
+                  field: constructorId
+
+          - name: points
+            description: Points scored by the constructor in the race.
+          - name: status
+            description: Raw status code from the dataset.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: constructor_standings
+        description: >
+          Constructor standings across the season, updated after each race.
+          Includes accumulated points, position, and total wins.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: constructorStandingsId
+            description: Unique identifier of the constructor standing entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Race identifier at which the standings were updated.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: constructorId
+            description: Identifier of the constructor.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'constructors')
+                  field: constructorId
+
+          - name: points
+            description: Accumulated points for the constructor.
+          - name: position
+            description: Numerical position in the standings.
+          - name: positionText
+            description: Position represented as text (may include special values).
+          - name: wins
+            description: Number of wins accumulated by the constructor.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: constructors
+        description: >
+          List of Formula 1 constructors (teams) including identification,
+          nationality, and reference metadata.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: constructorId
+            description: Unique identifier of the constructor.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: constructorRef
+            description: Short reference or slug for the constructor.
+          - name: name
+            description: Official name of the constructor.
+          - name: nationality
+            description: Nationality of the constructor.
+          - name: url
+            description: Reference URL for the constructor.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: drivers_standings
+        description: >
+          Driver standings across the season, updated after each race.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: driverStandingsId
+            description: Unique identifier of the driver standing entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Race identifier at which the standings were updated.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: points
+            description: Accumulated points for the driver.
+          - name: position
+            description: Numerical position in the standings.
+          - name: positionText
+            description: Position represented as text (may include special values).
+          - name: wins
+            description: Number of wins accumulated by the driver.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: drivers
+        description: >
+          List of Formula 1 drivers including identification, name components,
+          nationality, and date of birth.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: driverId
+            description: Unique identifier of the driver.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: driverRef
+            description: Short reference or slug for the driver.
+          - name: number
+            description: Driver’s race number (stored as text).
+          - name: code
+            description: Three-letter driver code.
+          - name: forename
+            description: Driver’s first name.
+          - name: surname
+            description: Driver’s last name.
+          - name: dob
+            description: Driver’s date of birth.
+          - name: nationality
+            description: Driver’s nationality.
+          - name: url
+            description: Reference URL for the driver.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: lap_times
+        description: >
+          Lap-by-lap timing data for each driver in each race.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: raceId
+            description: Identifier of the race.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: lap
+            description: Lap number.
+          - name: position
+            description: Driver position in that lap.
+          - name: time
+            description: Lap time in text format (e.g., "1:23.456").
+          - name: milliseconds
+            description: Lap time in milliseconds.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: pit_stops
+        description: >
+          Pit stop records for each driver including stop number, lap, and
+          stop duration.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: raceId
+            description: Identifier of the race.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: stop
+            description: Pit stop number (1st, 2nd, etc.).
+          - name: lap
+            description: Lap number when the pit stop happened.
+          - name: time
+            description: Time of day when the pit stop was recorded (TIME type).
+          - name: duration
+            description: Duration of the pit stop in text format.
+          - name: milliseconds
+            description: Duration of the pit stop in milliseconds.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: qualifying
+        description: >
+          Qualifying session results including Q1, Q2, and Q3 lap times and
+          the driver’s starting position for the race.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: qualifyId
+            description: Unique identifier of the qualifying result entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Identifier of the race associated with the qualifying session.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: constructorId
+            description: Identifier of the constructor.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'constructors')
+                  field: constructorId
+
+          - name: number
+            description: Driver’s race number.
+          - name: position
+            description: Starting grid position.
+          - name: q1
+            description: Driver’s Q1 lap time (text).
+          - name: q2
+            description: Driver’s Q2 lap time (text).
+          - name: q3
+            description: Driver’s Q3 lap time (text).
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: races
+        description: >
+          List of Formula 1 races including season year, round number, circuit,
+          Grand Prix name, race date, and session schedule.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: raceId
+            description: Unique identifier of the race.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: year
+            description: Season year of the race.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'seasons')
+                  field: year
+
+          - name: round
+            description: Round number of the season.
+          - name: circuitId
+            description: Identifier of the circuit where the race was held.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'circuits')
+                  field: circuitId
+
+          - name: name
+            description: Official name of the Grand Prix.
+          - name: date
+            description: Race date.
+          - name: time
+            description: Official race start time (raw text).
+          - name: url
+            description: Reference URL for the race.
+          - name: fp1_date
+            description: FP1 session date.
+          - name: fp1_time
+            description: FP1 session time.
+          - name: fp2_date
+            description: FP2 session date.
+          - name: fp2_time
+            description: FP2 session time.
+          - name: fp3_date
+            description: FP3 session date.
+          - name: fp3_time
+            description: FP3 session time.
+          - name: quali_date
+            description: Qualifying session date.
+          - name: quali_time
+            description: Qualifying session time.
+          - name: sprint_date
+            description: Sprint race date (if applicable).
+          - name: sprint_time
+            description: Sprint race time (if applicable).
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: results
+        description: >
+          Race results per driver including finishing position, points,
+          time, laps completed, fastest lap information, and status code.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: resultId
+            description: Unique identifier of the race result entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Identifier of the race.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: constructorId
+            description: Identifier of the constructor.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'constructors')
+                  field: constructorId
+
+          - name: number
+            description: Driver’s race number.
+          - name: grid
+            description: Starting grid position.
+          - name: position
+            description: Finishing position (text).
+          - name: positionText
+            description: Finishing position as text (may include special codes).
+          - name: positionOrder
+            description: Numerical finishing position.
+          - name: points
+            description: Points awarded in the race.
+          - name: laps
+            description: Number of laps completed.
+          - name: time
+            description: Total race time (raw text).
+          - name: milliseconds
+            description: Total race time in milliseconds (text).
+          - name: fastestLap
+            description: Fastest lap number (text).
+          - name: rank
+            description: Ranking of the fastest lap.
+          - name: fastestLapTime
+            description: Fastest lap time (text).
+          - name: fastestLapSpeed
+            description: Average speed during the fastest lap (text).
+          - name: statusId
+            description: Identifier of the race status.
+            data_tests:
+              - relationships:
+                  to: source('F1', 'status')
+                  field: statusId
+
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: seasons
+        description: >
+          Season reference table containing all Formula 1 championship years.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: year
+            description: Championship year.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: url
+            description: Reference URL for the season.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: sprint_results
+        description: >
+          Sprint race results including positions, points, lap information,
+          and status code.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: resultId
+            description: Unique identifier of the sprint result entry.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: raceId
+            description: Identifier of the race associated with the sprint.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'races')
+                  field: raceId
+
+          - name: driverId
+            description: Identifier of the driver.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'drivers')
+                  field: driverId
+
+          - name: constructorId
+            description: Identifier of the constructor.
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('F1', 'constructors')
+                  field: constructorId
+
+          - name: number
+            description: Driver’s race number.
+          - name: grid
+            description: Starting grid position.
+          - name: position
+            description: Finishing position (text).
+          - name: positionText
+            description: Finishing position as text (may include special values).
+          - name: positionOrder
+            description: Numerical finishing position.
+          - name: points
+            description: Points scored in the sprint.
+          - name: laps
+            description: Number of laps completed.
+          - name: time
+            description: Total sprint time (text).
+          - name: milliseconds
+            description: Total sprint time in milliseconds (text).
+          - name: fastestLap
+            description: Fastest lap number (text).
+          - name: fastestLapTime
+            description: Fastest lap time (text).
+          - name: statusId
+            description: Identifier of the sprint status.
+            data_tests:
+              - relationships:
+                  to: source('F1', 'status')
+                  field: statusId
+
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null
+
+      - name: status
+        description: >
+          Status code dictionary for Formula 1 race results (e.g. finished,
+          collision, engine failure). Used to decode race result statuses.
+        loaded_at_field: ingestion_timestamp
+
+        columns:
+          - name: statusId
+            description: Unique identifier of the status code.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: status
+            description: Raw status description.
+          - name: ingestion_timestamp
+            description: Timestamp when the record was ingested into Bronze.
+            data_tests:
+              - not_null

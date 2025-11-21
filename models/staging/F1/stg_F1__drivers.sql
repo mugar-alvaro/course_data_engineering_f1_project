@@ -12,7 +12,6 @@ with source as (
         surname,
         dob,
         nationality,
-        url,
         ingestion_timestamp
     from {{ source('F1', 'drivers') }}
 ),
@@ -28,7 +27,6 @@ cleaned as (
         trim(surname)                         as driver_surname,
         cast(dob as date)                     as date_of_birth,
         trim(nationality)                     as driver_nationality,
-        trim(url)                             as driver_url,
         ingestion_timestamp
     from source
 )

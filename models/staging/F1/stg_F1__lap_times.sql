@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'lap_time_surrogate_key',
+    on_schema_change = 'append_new_columns',
     post_hook    = "{{ f1_log_model_run() }}"
 ) }}
 

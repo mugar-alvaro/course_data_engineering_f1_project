@@ -8,7 +8,6 @@ with source as (
         constructorRef,
         name,
         nationality,
-        url,
         ingestion_timestamp
     from {{ source('F1', 'constructors') }}
 ),
@@ -20,7 +19,6 @@ cleaned as (
         trim(constructorRef)                        as constructor_referency,
         trim(name)                                  as constructor_name,
         upper(trim(nationality))                    as nationality,
-        trim(url)                                   as url,
         ingestion_timestamp
     from source
 )

@@ -12,7 +12,6 @@ with source as (
         stop,
         lap,
         time,
-        duration,
         milliseconds,
         ingestion_timestamp
     from {{ source('F1', 'pit_stops') }}
@@ -31,10 +30,9 @@ cleaned as (
         cast(stop as number(3,0))                            as stop_number,
         cast(lap as number(3,0))                             as lap_number,
         cast(time as time)                                   as pit_stop_time_of_day,
-        cast(duration as number(10,3))                       as pit_stop_duration_seconds,
-        cast(milliseconds as number(10,0))                   as pit_stop_duration_ms,
+        cast(milliseconds as number(15,0))                   as pit_stop_duration_milliseconds,
         ingestion_timestamp
     from source
 )
 
-select * from cleaned;
+select * from cleaned

@@ -1,5 +1,5 @@
 {{ config(
-    materialized = 'table'
+    materialized = 'view'
 ) }}
 
 with source as (
@@ -12,7 +12,6 @@ with source as (
         lat,
         lng,
         alt,
-        url,
         ingestion_timestamp
     from {{ source('F1', 'circuits') }}
 ),
@@ -28,9 +27,8 @@ cleaned as (
         cast(lat as float)                       as latitude,
         cast(lng as float)                       as longitude,
         cast(alt as number(5,0))                 as altitude_meters,
-        trim(url)                                as url,
         ingestion_timestamp
     from source
 )
 
-select * from cleaned;
+select * from cleaned

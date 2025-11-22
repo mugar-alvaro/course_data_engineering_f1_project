@@ -18,7 +18,6 @@ with source as (
         positionOrder,
         points,
         laps,
-        time,
         milliseconds,
         fastestLap,
         fastestLapTime,
@@ -32,29 +31,28 @@ with source as (
 
 cleaned as (
     select
-        {{ surrogate_key(['resultId']) }}           as sprint_result_surrogate_key,
-        resultId                                    as sprint_result_id,
-        {{ surrogate_key(['raceId']) }}             as race_surrogate_key,
-        raceId                                      as race_id,
-        {{ surrogate_key(['driverId']) }}           as driver_surrogate_key,
-        driverId                                    as driver_id,
-        {{ surrogate_key(['constructorId']) }}      as constructor_surrogate_key,
-        constructorId                               as constructor_id,
-        {{ surrogate_key(['statusId']) }}           as sprint_status_surrogate_key,
-        statusId                                    as sprint_status_id,
-        cast(number as number(3,0))                 as car_number,
-        cast(grid as number(3,0))                   as sprint_grid_position,
-        trim(position)                              as sprint_position,
-        trim(positionText)                          as sprint_position_label,
-        cast(positionOrder as number(3,0))          as sprint_final_position_order,
-        cast(points as number(3,1))                 as sprint_points,
-        cast(laps as number(3,0))                   as sprint_laps_completed,
-        trim(time)                                  as sprint_time_text,
-        cast(milliseconds as number(20,0))          as sprint_time_milliseconds,
-        cast(fastestLap as number(3,0))             as sprint_fastest_lap,
-        trim(fastestLapTime)                        as sprint_fastest_lap_time,
+        {{ surrogate_key(['resultId']) }}                    as sprint_result_surrogate_key,
+        resultId                                             as sprint_result_id,
+        {{ surrogate_key(['raceId']) }}                      as race_surrogate_key,
+        raceId                                               as race_id,
+        {{ surrogate_key(['driverId']) }}                    as driver_surrogate_key,
+        driverId                                             as driver_id,
+        {{ surrogate_key(['constructorId']) }}               as constructor_surrogate_key,
+        constructorId                                        as constructor_id,
+        {{ surrogate_key(['statusId']) }}                    as sprint_status_surrogate_key,
+        statusId                                             as sprint_status_id,
+        cast(number as number(3,0))                          as car_number,
+        cast(grid as number(3,0))                            as sprint_grid_position,
+        trim(position)                                       as sprint_position,
+        trim(positionText)                                   as sprint_position_label,
+        cast(positionOrder as number(3,0))                   as sprint_final_position_order,
+        cast(points as number(3,1))                          as sprint_points,
+        cast(laps as number(3,0))                            as sprint_laps_completed,
+        cast(milliseconds as number(20,0))                   as sprint_duration_milliseconds,
+        cast(fastestLap as number(3,0))                      as sprint_fastest_lap,
+        {{ f1_time_to_ms('fastestLapTime') }}::number(15,0)  as sprint_fastest_lap_time,
         ingestion_timestamp
     from source
 )
 
-select * from cleaned;
+select * from cleaned

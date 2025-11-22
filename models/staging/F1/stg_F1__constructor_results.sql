@@ -1,5 +1,5 @@
 {{ config(
-    materialized = 'table'
+    materialized = 'view'
 ) }}
 
 with source as (
@@ -27,4 +27,4 @@ cleaned as (
     from source
 )
 
-select * from cleaned;
+select * from cleaned

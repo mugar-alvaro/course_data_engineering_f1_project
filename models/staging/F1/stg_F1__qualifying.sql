@@ -35,11 +35,11 @@ cleaned as (
         constructorId                               as constructor_id,
         cast(number as number(3,0))                 as car_number,
         cast(position as number(3,0))               as qualifying_position,
-        trim(q1)                                    as q1_time_text,
-        trim(q2)                                    as q2_time_text,
-        trim(q3)                                    as q3_time_text,
+        {{ f1_time_to_ms('q1') }}::number(15,0)     as q1_time_milliseconds,
+        {{ f1_time_to_ms('q2') }}::number(15,0)     as q2_time_milliseconds,
+        {{ f1_time_to_ms('q3') }}::number(15,0)     as q3_time_milliseconds,
         ingestion_timestamp
     from source
 )
 
-select * from cleaned;
+select * from cleaned

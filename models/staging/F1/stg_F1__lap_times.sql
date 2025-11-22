@@ -11,7 +11,6 @@ with source as (
         driverId,
         lap,
         position,
-        time,
         milliseconds,
         ingestion_timestamp
     from {{ source('F1', 'lap_times') }}
@@ -29,10 +28,9 @@ cleaned as (
         driverId                                            as driver_id,
         cast(lap as number(3,0))                            as lap_number,
         cast(position as number(3,0))                       as lap_position,
-        trim(time)                                          as lap_time_formatted,
-        cast(milliseconds as number(10,0))                  as lap_time_milliseconds,
+        cast(milliseconds as number(15,0))                  as lap_time_milliseconds,
         ingestion_timestamp
     from source
 )
 
-select * from cleaned;
+select * from cleaned

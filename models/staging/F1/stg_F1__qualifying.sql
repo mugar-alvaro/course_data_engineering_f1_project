@@ -36,8 +36,11 @@ cleaned as (
         cast(number as number(3,0))                 as car_number,
         cast(position as number(3,0))               as qualifying_position,
         {{ f1_time_to_ms('q1') }}::number(15,0)     as q1_time_milliseconds,
+        {{ f1_flag_time('q1') }}                    as is_anomalous_q1,
         {{ f1_time_to_ms('q2') }}::number(15,0)     as q2_time_milliseconds,
+        {{ f1_flag_time('q2') }}                    as is_anomalous_q2,
         {{ f1_time_to_ms('q3') }}::number(15,0)     as q3_time_milliseconds,
+        {{ f1_flag_time('q3') }}                    as is_anomalous_q3,
         ingestion_timestamp
     from source
 )

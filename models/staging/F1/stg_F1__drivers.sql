@@ -18,8 +18,8 @@ with source as (
 
 cleaned as (
     select
-        {{ surrogate_key(['driverId']) }}
-        driverId        as driver_id,
+        {{ surrogate_key(['driverId']) }}     as driver_surrogate_key,
+        driverId                              as driver_id,
         trim(driverRef)                       as driver_reference,
         cast(number as number(3,0))           as driver_number,
         trim(code)                            as driver_code,

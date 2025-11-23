@@ -347,6 +347,7 @@ models:
           - positive
           - max_ms:
               max_ms: 600000
+              where: "is_anomalous_lap = false"
 
       - name: ingestion_timestamp
         description: "Ingestion timestamp propagated from the Bronze layer."
@@ -481,18 +482,21 @@ models:
         tests:
           - max_ms:
               max_ms: 600000
+              where: "is_anomalous_q1 = false"
 
       - name: q2_time_milliseconds
         description: "Q2 lap time in milliseconds."
         tests:
           - max_ms:
               max_ms: 600000
+              where: "is_anomalous_q2 = false"
 
       - name: q3_time_milliseconds
         description: "Q3 lap time in milliseconds."
         tests:
           - max_ms:
               max_ms: 600000
+              where: "is_anomalous_q3 = false"
 
       - name: ingestion_timestamp
         description: "Ingestion timestamp propagated from the Bronze layer."

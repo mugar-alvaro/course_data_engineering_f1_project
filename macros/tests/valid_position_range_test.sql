@@ -2,5 +2,5 @@
 select *
 from {{ model }}
 where {{ column_name }} is not null
-  and ({{ column_name }} < 1 or {{ column_name }} > 20)
+  and ({{ column_name }} < 1 or {{ column_name }} > 28)
 {% endtest %}

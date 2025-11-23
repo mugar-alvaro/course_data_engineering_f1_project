@@ -29,6 +29,7 @@ cleaned as (
         cast(lap as number(3,0))                            as lap_number,
         cast(position as number(3,0))                       as lap_position,
         cast(milliseconds as number(15,0))                  as lap_time_milliseconds,
+        {{ f1_flag_time("milliseconds") }}                  as is_anomalous_lap,
         ingestion_timestamp
     from source
 )

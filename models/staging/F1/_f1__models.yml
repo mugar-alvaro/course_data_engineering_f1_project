@@ -1,0 +1,878 @@
+version: 2
+
+models:
+
+  - name: stg_F1__circuits
+    description: "Standardized and cleaned view of Formula 1 circuits with geospatial information."
+    columns:
+      - name: circuit_surrogate_key
+        description: "Surrogate key generated from circuitId."
+        tests:
+          - not_null
+          - unique
+
+      - name: circuit_id
+        description: "Natural identifier of the circuit from the source dataset."
+        tests:
+          - not_null
+          - unique
+
+      - name: circuit_referency
+        description: "Short reference or slug used to identify the circuit."
+
+      - name: circuit_name
+        description: "Official name of the circuit."
+
+      - name: city
+        description: "City or locality where the circuit is located."
+
+      - name: country
+        description: "Country where the circuit is located."
+        tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude of the circuit as a floating point number."
+
+      - name: longitude
+        description: "Longitude of the circuit as a floating point number."
+
+      - name: altitude_meters
+        description: "Altitude of the circuit above sea level in meters."
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the record was ingested into the Bronze layer and propagated to Silver."
+        tests:
+          - not_null
+
+  - name: stg_F1__constructor_results
+    description: "Cleaned constructor race results, one row per constructor and race."
+    columns:
+      - name: constructor_result_surrogate_key
+        description: "Surrogate key generated from constructorResultsId."
+        tests:
+          - not_null
+          - unique
+
+      - name: constructor_result_id
+        description: "Natural identifier for the constructor result entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: constructor_points
+        description: "Points scored by the constructor in the race."
+        tests:
+          - non_negative
+
+      - name: status_code
+        description: "Uppercased status code associated with the constructor result."
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__constructor_standings
+    description: "Season-by-season constructor standings after each race."
+    columns:
+      - name: constructor_standing_surrogate_key
+        description: "Surrogate key generated from constructorStandingsId."
+        tests:
+          - not_null
+          - unique
+
+      - name: constructor_standing_id
+        description: "Natural identifier for the constructor standing entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race where the standing was updated."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race associated with the standing update."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: constructor_points
+        description: "Accumulated points for the constructor at this point in the season."
+        tests:
+          - non_negative
+
+      - name: constructor_position
+        description: "Numeric position of the constructor in the standings."
+        tests:
+          - valid_position_range
+
+      - name: constructor_position_text
+        description: "Textual representation of the constructor position."
+
+      - name: constructor_wins
+        description: "Total number of wins accumulated by the constructor."
+        tests:
+          - non_negative
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__constructors
+    description: "Standardized list of constructors (teams) with cleaned names and nationalities."
+    columns:
+      - name: constructor_surrogate_key
+        description: "Surrogate key generated from constructorId."
+        tests:
+          - not_null
+          - unique
+
+      - name: constructor_id
+        description: "Natural identifier for the constructor."
+        tests:
+          - not_null
+          - unique
+
+      - name: constructor_referency
+        description: "Short reference or slug for the constructor."
+
+      - name: constructor_name
+        description: "Official constructor name."
+
+      - name: nationality
+        description: "Uppercased nationality of the constructor."
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__driver_standings
+    description: "Season-by-season driver standings after each race."
+    columns:
+      - name: driver_standing_surrogate_key
+        description: "Surrogate key generated from driverStandingsId."
+        tests:
+          - not_null
+          - unique
+
+      - name: driver_standing_id
+        description: "Natural identifier for the driver standing entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race where the standing was updated."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race associated with the standing update."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: driver_points
+        description: "Accumulated points for the driver at this point in the season."
+        tests:
+          - non_negative
+
+      - name: driver_position_number
+        description: "Numeric position of the driver in the standings."
+        tests:
+          - valid_position_range
+
+      - name: driver_position_label
+        description: "Textual label for the driver position."
+
+      - name: driver_wins
+        description: "Total number of wins accumulated by the driver."
+        tests:
+          - non_negative
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__drivers
+    description: "Standardized list of drivers with cleaned names and date of birth."
+    columns:
+      - name: driver_surrogate_key
+        description: "Surrogate key generated from driverId."
+        tests:
+          - not_null
+          - unique
+
+      - name: driver_id
+        description: "Natural identifier for the driver."
+        tests:
+          - not_null
+          - unique
+
+      - name: driver_reference
+        description: "Short reference or slug for the driver."
+
+      - name: driver_number
+        description: "Driver’s permanent race number."
+
+      - name: driver_code
+        description: "Three-letter official driver code."
+
+      - name: driver_forename
+        description: "Driver’s first name."
+
+      - name: driver_surname
+        description: "Driver’s last name."
+
+      - name: date_of_birth
+        description: "Driver’s date of birth."
+
+      - name: driver_nationality
+        description: "Driver’s nationality."
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__lap_times
+    description: "Lap-by-lap timing data in milliseconds for each driver and race."
+    columns:
+      - name: lap_time_surrogate_key
+        description: "Surrogate key generated from raceId, driverId and lap."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: lap_number
+        description: "Lap number."
+        tests:
+          - positive
+          - valid_lap_range
+
+      - name: lap_position
+        description: "Driver position in that lap."
+
+      - name: lap_time_milliseconds
+        description: "Lap time in milliseconds."
+        tests:
+          - positive
+          - max_ms:
+              max_ms: 600000
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__pit_stops
+    description: "Pit stop records with duration in milliseconds and time of day."
+    columns:
+      - name: pit_stop_surrogate_key
+        description: "Surrogate key generated from raceId, driverId and stop."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: stop_number
+        description: "Ordinal number of the pit stop for the driver in that race."
+        tests:
+          - positive
+
+      - name: lap_number
+        description: "Lap number when the pit stop occurred."
+        tests:
+          - positive
+          - valid_lap_range
+
+      - name: pit_stop_time_of_day
+        description: "Time of day when the pit stop was recorded."
+
+      - name: pit_stop_duration_milliseconds
+        description: "Duration of the pit stop in milliseconds."
+        tests:
+          - positive
+          - max_ms:
+              max_ms: 120000
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__qualifying
+    description: "Qualifying results with Q1, Q2 and Q3 times converted to milliseconds."
+    columns:
+      - name: qualify_surrogate_key
+        description: "Surrogate key generated from qualifyId."
+        tests:
+          - not_null
+          - unique
+
+      - name: qualify_id
+        description: "Natural identifier for the qualifying result entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: car_number
+        description: "Driver’s race number for this qualifying session."
+
+      - name: qualifying_position
+        description: "Final grid position after qualifying."
+        tests:
+          - valid_position_range
+
+      - name: q1_time_milliseconds
+        description: "Q1 lap time in milliseconds."
+        tests:
+          - max_ms:
+              max_ms: 600000
+
+      - name: q2_time_milliseconds
+        description: "Q2 lap time in milliseconds."
+        tests:
+          - max_ms:
+              max_ms: 600000
+
+      - name: q3_time_milliseconds
+        description: "Q3 lap time in milliseconds."
+        tests:
+          - max_ms:
+              max_ms: 600000
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__races
+    description: "Cleaned race calendar with session schedule and circuit references."
+    columns:
+      - name: race_surrogate_key
+        description: "Surrogate key generated from raceId."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_id
+        description: "Natural identifier for the race."
+        tests:
+          - not_null
+          - unique
+
+      - name: circuit_surrogate_key
+        description: "Surrogate key referencing the circuit."
+        tests:
+          - not_null
+
+      - name: circuit_id
+        description: "Identifier of the circuit."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__circuits')
+              field: circuit_id
+
+      - name: race_year
+        description: "Season year of the race."
+        tests:
+          - not_null
+          - valid_year_range:
+              min_year: 1950
+              max_year: 2050
+
+      - name: race_round
+        description: "Round number of the race within the season."
+        tests:
+          - positive
+
+      - name: race_name
+        description: "Official race or Grand Prix name."
+
+      - name: race_date
+        description: "Date when the race took place."
+
+      - name: race_time_of_day
+        description: "Scheduled start time of the race."
+
+      - name: fp1_session_date
+        description: "Date of the first free practice session."
+
+      - name: fp1_session_time
+        description: "Time of the first free practice session."
+
+      - name: fp2_session_date
+        description: "Date of the second free practice session."
+
+      - name: fp2_session_time
+        description: "Time of the second free practice session."
+
+      - name: fp3_session_date
+        description: "Date of the third free practice session."
+
+      - name: fp3_session_time
+        description: "Time of the third free practice session."
+
+      - name: quali_session_date
+        description: "Date of the qualifying session."
+
+      - name: quali_session_time
+        description: "Time of the qualifying session."
+
+      - name: sprint_session_date
+        description: "Date of the sprint session, if applicable."
+
+      - name: sprint_session_time
+        description: "Time of the sprint session, if applicable."
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__results
+    description: "Cleaned race results per driver, including positions, points, and fastest lap metrics."
+    columns:
+      - name: race_result_surrogate_key
+        description: "Surrogate key generated from resultId."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_result_id
+        description: "Natural identifier for the race result entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: race_status_surrogate_key
+        description: "Surrogate key referencing the race status."
+        tests:
+          - not_null
+
+      - name: race_status_id
+        description: "Identifier of the race status."
+        tests:
+          - exists_in_model:
+              ref_model: stg_F1__status
+              ref_column: status_id
+
+      - name: car_number
+        description: "Driver’s race number."
+
+      - name: race_grid_position
+        description: "Starting grid position for the race."
+        tests:
+          - valid_position_range
+
+      - name: race_position
+        description: "Final numeric race position, when available."
+        tests:
+          - valid_position_range
+
+      - name: race_position_label
+        description: "Textual representation of the race position."
+
+      - name: race_final_position_order
+        description: "Final ordering position for classification purposes."
+        tests:
+          - valid_position_range
+
+      - name: race_points
+        description: "Points scored by the driver in the race."
+        tests:
+          - non_negative
+
+      - name: race_laps_completed
+        description: "Number of laps completed by the driver."
+        tests:
+          - non_negative
+
+      - name: race_duration_milliseconds
+        description: "Total race duration in milliseconds, as provided by the source."
+        tests:
+          - non_negative
+          # Podrías añadir max_ms con un límite muy alto (ej. 3 horas)
+
+      - name: race_fastest_lap
+        description: "Fastest lap number for the driver in the race."
+        tests:
+          - non_negative
+          - valid_lap_range
+
+      - name: race_fastest_lap_rank
+        description: "Ranking of the fastest lap among all drivers."
+        tests:
+          - non_negative
+
+      - name: race_fastest_lap_time_milliseconds
+        description: "Fastest lap time in milliseconds for the driver."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+
+      - name: race_fastest_lap_top_speed
+        description: "Top average speed reached in the fastest lap (km/h)."
+        tests:
+          - non_negative
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__seasons
+    description: "Reference table of Formula 1 seasons."
+    columns:
+      - name: season_surrogate_key
+        description: "Surrogate key generated from the season year."
+        tests:
+          - not_null
+          - unique
+
+      - name: season_year
+        description: "Formula 1 championship year."
+        tests:
+          - not_null
+          - unique
+          - valid_year_range:
+              min_year: 1950
+              max_year: 2050
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__sprint_results
+    description: "Cleaned sprint race results per driver."
+    columns:
+      - name: sprint_result_surrogate_key
+        description: "Surrogate key generated from resultId."
+        tests:
+          - not_null
+          - unique
+
+      - name: sprint_result_id
+        description: "Natural identifier for the sprint result entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: sprint_status_surrogate_key
+        description: "Surrogate key referencing the sprint status."
+
+      - name: sprint_status_id
+        description: "Identifier of the sprint status."
+        tests:
+          - exists_in_model:
+              ref_model: stg_F1__status
+              ref_column: status_id
+
+      - name: car_number
+        description: "Driver’s race number in the sprint."
+
+      - name: sprint_grid_position
+        description: "Starting grid position in the sprint."
+        tests:
+          - valid_position_range
+
+      - name: sprint_position
+        description: "Final sprint position (raw text)."
+
+      - name: sprint_position_label
+        description: "Textual label for the sprint position."
+
+      - name: sprint_final_position_order
+        description: "Final ordering in the sprint classification."
+        tests:
+          - valid_position_range
+
+      - name: sprint_points
+        description: "Points scored by the driver in the sprint."
+        tests:
+          - non_negative
+
+      - name: sprint_laps_completed
+        description: "Number of laps completed in the sprint."
+        tests:
+          - non_negative
+
+      - name: sprint_duration_milliseconds
+        description: "Total sprint duration in milliseconds."
+        tests:
+          - non_negative
+
+      - name: sprint_fastest_lap
+        description: "Fastest lap number for the driver in the sprint."
+        tests:
+          - non_negative
+          - valid_lap_range
+
+      - name: sprint_fastest_lap_time
+        description: "Fastest lap time in the sprint in milliseconds."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null
+
+  - name: stg_F1__status
+    description: "Standardized status dictionary for race and sprint results."
+    columns:
+      - name: status_surrogate_key
+        description: "Surrogate key generated from statusId."
+        tests:
+          - not_null
+          - unique
+
+      - name: status_id
+        description: "Natural identifier of the status code."
+        tests:
+          - not_null
+          - unique
+
+      - name: status_description
+        description: "Uppercased status description."
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer."
+        tests:
+          - not_null

@@ -25,22 +25,22 @@ with source as (
 
 cleaned as (
     select
-        {{ surrogate_key(['qualifyId']) }}          as qualify_surrogate_key,
-        qualifyId                                   as qualify_id,
-        {{ surrogate_key(['raceId']) }}             as race_surrogate_key,
-        raceId                                      as race_id,
-        {{ surrogate_key(['driverId']) }}           as driver_surrogate_key,
-        driverId                                    as driver_id,
-        {{ surrogate_key(['constructorId']) }}      as constructor_surrogate_key,
-        constructorId                               as constructor_id,
-        cast(number as number(3,0))                 as car_number,
-        cast(position as number(3,0))               as qualifying_position,
-        {{ f1_time_to_ms('q1') }}::number(15,0)     as q1_time_milliseconds,
-        {{ f1_flag_time('q1') }}                    as is_anomalous_q1,
-        {{ f1_time_to_ms('q2') }}::number(15,0)     as q2_time_milliseconds,
-        {{ f1_flag_time('q2') }}                    as is_anomalous_q2,
-        {{ f1_time_to_ms('q3') }}::number(15,0)     as q3_time_milliseconds,
-        {{ f1_flag_time('q3') }}                    as is_anomalous_q3,
+        {{ surrogate_key(['qualifyId']) }}           as qualify_surrogate_key,
+        qualifyId                                    as qualify_id,
+        {{ surrogate_key(['raceId']) }}              as race_surrogate_key,
+        raceId                                       as race_id,
+        {{ surrogate_key(['driverId']) }}            as driver_surrogate_key,
+        driverId                                     as driver_id,
+        {{ surrogate_key(['constructorId']) }}       as constructor_surrogate_key,
+        constructorId                                as constructor_id,
+        cast(number as number(3,0))                  as car_number,
+        cast(position as number(3,0))                as qualifying_position,
+        {{ f1_time_to_ms('q1') }}::number(15,0)      as q1_time_milliseconds,
+        {{ f1_flag_time('q1_time_milliseconds') }}   as is_anomalous_q1,
+        {{ f1_time_to_ms('q2') }}::number(15,0)      as q2_time_milliseconds,
+        {{ f1_flag_time('q2_time_milliseconds') }}   as is_anomalous_q2,
+        {{ f1_time_to_ms('q3') }}::number(15,0)      as q3_time_milliseconds,
+        {{ f1_flag_time('q3_time_milliseconds') }}   as is_anomalous_q3,
         ingestion_timestamp
     from source
 )

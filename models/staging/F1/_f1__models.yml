@@ -148,7 +148,9 @@ models:
       - name: constructor_position
         description: "Numeric position of the constructor in the standings."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
 
       - name: constructor_position_text
         description: "Textual representation of the constructor position."
@@ -241,7 +243,9 @@ models:
       - name: driver_position_number
         description: "Numeric position of the driver in the standings."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 28
 
       - name: driver_position_label
         description: "Textual label for the driver position."
@@ -348,6 +352,11 @@ models:
           - max_ms:
               max_ms: 600000
               where: "is_anomalous_lap = false"
+
+      - name: is_anomalous_lap
+        description: "Boolean flag indicating whether the lap time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
 
       - name: ingestion_timestamp
         description: "Ingestion timestamp propagated from the Bronze layer."
@@ -475,7 +484,9 @@ models:
       - name: qualifying_position
         description: "Final grid position after qualifying."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
 
       - name: q1_time_milliseconds
         description: "Q1 lap time in milliseconds."
@@ -484,6 +495,11 @@ models:
               max_ms: 600000
               where: "is_anomalous_q1 = false"
 
+      - name: is_anomalous_q1
+        description: "Boolean flag indicating whether the Q1 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
+
       - name: q2_time_milliseconds
         description: "Q2 lap time in milliseconds."
         tests:
@@ -491,12 +507,22 @@ models:
               max_ms: 600000
               where: "is_anomalous_q2 = false"
 
+      - name: is_anomalous_q2
+        description: "Boolean flag indicating whether the Q2 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
+
       - name: q3_time_milliseconds
         description: "Q3 lap time in milliseconds."
         tests:
           - max_ms:
               max_ms: 600000
               where: "is_anomalous_q3 = false"
+
+      - name: is_anomalous_q3
+        description: "Boolean flag indicating whether the Q3 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
 
       - name: ingestion_timestamp
         description: "Ingestion timestamp propagated from the Bronze layer."
@@ -660,12 +686,16 @@ models:
       - name: race_grid_position
         description: "Starting grid position for the race."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 0
+              max_value: 39
 
       - name: race_position
         description: "Final numeric race position, when available."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
 
       - name: race_position_label
         description: "Textual representation of the race position."
@@ -673,7 +703,9 @@ models:
       - name: race_final_position_order
         description: "Final ordering position for classification purposes."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
 
       - name: race_points
         description: "Points scored by the driver in the race."
@@ -692,10 +724,21 @@ models:
           # Podrías añadir max_ms con un límite muy alto (ej. 3 horas)
 
       - name: race_fastest_lap
-        description: "Fastest lap number for the driver in the race."
+        description: > 
+          Cleaned fastest lap number completed by the driver. 
+          If the original fastestLap value is incoherent (greater than race_laps_completed),
+          the value is set to NULL using the f1_clean_fastest_lap macro.
         tests:
           - non_negative
           - valid_lap_range
+
+      - name: is_inconsistent_fastest_lap
+        description: >
+          Boolean flag indicating whether the original fastestLap value was inconsistent.
+          TRUE when fastestLap > laps in the raw Bronze source. 
+          Serves as a data quality indicator for results that cannot be used for analysis.
+        tests:
+          - not_null
 
       - name: race_fastest_lap_rank
         description: "Ranking of the fastest lap among all drivers."
@@ -812,7 +855,9 @@ models:
       - name: sprint_grid_position
         description: "Starting grid position in the sprint."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 0
+              max_value: 40
 
       - name: sprint_position
         description: "Final sprint position (raw text)."
@@ -823,7 +868,9 @@ models:
       - name: sprint_final_position_order
         description: "Final ordering in the sprint classification."
         tests:
-          - valid_position_range
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
 
       - name: sprint_points
         description: "Points scored by the driver in the sprint."

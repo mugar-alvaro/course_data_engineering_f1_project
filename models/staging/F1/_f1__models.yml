@@ -721,7 +721,10 @@ models:
         description: "Total race duration in milliseconds, as provided by the source."
         tests:
           - non_negative
-          # Podrías añadir max_ms con un límite muy alto (ej. 3 horas)
+          - max_milliseconds_race:
+              arguments:
+                max_value: 28800000
+                severity: warn
 
       - name: race_fastest_lap
         description: > 

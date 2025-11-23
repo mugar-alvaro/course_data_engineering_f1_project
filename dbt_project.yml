@@ -24,6 +24,8 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
+vars:
+  f1_use_incremental: true       # flag para apagado rápido de incremental
 
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
@@ -58,3 +60,5 @@ snapshots:
   +transient: false
   +target_database: "{{ env_var('DBT_ENVIRONMENTS') }}_SILVER_DB"
   +target_schema: snapshots
+on-run-start:
+  - "{{ f1_create_models_run_audit() }}"

@@ -1,0 +1,36 @@
+1. int_F1__races_enriched — Dimensión completa de carrera
+Unifica tres datasets (races + circuits + seasons) en una única tabla consistente.
+Establece el grano claro race_id, evitando joins repetidos en Gold.
+Centraliza atributos geográficos y temporales de la carrera (ciudad, país, fechas, sesiones…).
+Reduce complejidad en Gold al proveer una dimensión de carrera ya preparada.
+Evita duplicación de lógica y asegura una única versión de la información de carrera.
+
+2. int_F1__lap_times_aggregated — Ritmo por piloto-carrera
+Convierte el grano de “una fila por vuelta” - “una fila por piloto y carrera”.
+Calcula métricas técnicas esenciales (best/avg/total lap time).
+Compara vueltas reales vs vueltas reportadas, generando flags de calidad de dato.
+Identifica inconsistencias mediante lap_match_category y lap_data_mismatch_flag.
+Prepara datos de ritmo de carrera sin obligar a recalcular aggregations en Gold.
+
+3. int_F1__pit_stops_aggregated — Estrategia y eficiencia en boxes
+Cambia el grano de “una fila por parada” - “piloto-carrera”.
+Calcula métricas de boxes: nº de paradas, mejor/parada media, tiempo total perdido.
+Centraliza lógica compleja que se reutilizará en Gold (undercut, overcut, eficiencia).
+Identifica la primera y última parada, clave para análisis de estrategia.
+Elimina la necesidad de agrupar pit stops en Gold, simplificando las facts.
+
+4. int_F1__qualifying_aggregated — Consolidación completa de clasificación
+
+Consolida Q1, Q2 y Q3 a un modelo uniforme por piloto-carrera.
+Calcula el mejor tiempo de clasificación de forma robusta.
+Indica la sesión donde se obtuvo el mejor tiempo (best_qualifying_session).
+Añade metadatos clave: sesiones disputadas, flags de Q2/Q3, anomalías.
+Deja lista toda la información de qualifying para ser usada directamente en Gold.
+
+
+5. int_F1__race_results_enriched — El modelo core de Silver
+Resuelve duplicados reales en race_id + driver_id y deja un grano limpio.
+Centraliza datos de resultados, carrera, piloto, constructor y status en una sola tabla.
+Integra todas las métricas técnicas Silver: laps, pits, qualifying, consistencias.
+Transforma un dataset crudo en un modelo analítico completo, listo para Gold.
+Evita recalcular lógica compleja en Gold, actuando como puente estable entre Silver y las fact tables.

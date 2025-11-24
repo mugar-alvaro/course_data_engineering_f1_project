@@ -17,8 +17,8 @@ with pit_stops as (
         driver_id,
         stop_number,
         lap_number,
-        time_of_day_utc,
-        duration_seconds
+        pit_stop_time_of_day,
+        pit_stop_duration_milliseconds
     from {{ ref('stg_F1__pit_stops') }}
 ),
 
@@ -28,13 +28,13 @@ aggregated_pit as (
         race_id,
         driver_surrogate_key,
         driver_id,
-        count(*)              as pit_stop_count,
-        min(duration_seconds) as best_pit_stop_seconds,
-        max(duration_seconds) as worst_pit_stop_seconds,
-        avg(duration_seconds) as avg_pit_stop_seconds,
-        sum(duration_seconds) as total_pit_stop_seconds,
-        min(lap_number)       as first_pit_lap,
-        max(lap_number)       as last_pit_lap
+        count(*)                            as pit_stop_count,
+        min(pit_stop_duration_milliseconds) as best_pit_stop_duration_milliseconds,
+        max(pit_stop_duration_milliseconds) as worst_pit_stop_duration_milliseconds,
+        avg(pit_stop_duration_milliseconds) as avg_pit_stop_duration_milliseconds,
+        sum(pit_stop_duration_milliseconds) as total_pit_stop_duration_milliseconds,
+        min(lap_number)                     as first_pit_lap_number,
+        max(lap_number)                     as last_pit_lap_number
     from pit_stops
     group by 1,2,3,4
 )

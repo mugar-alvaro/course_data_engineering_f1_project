@@ -47,6 +47,12 @@ models:
       +database: "{{ env_var('DBT_ENVIRONMENTS') }}_SILVER_DB"
       F1:
         +schema: F1
+
+    intermediate:
+      +materialized: table
+      +database: "{{ env_var('DBT_ENVIRONMENTS') }}_SILVER_DB"
+      F1:
+        +schema: F1
       
     marts:
       +materialized: table

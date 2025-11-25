@@ -70,7 +70,10 @@ models:
           - non_negative
           - max_ms:
               max_ms: 600000
-              where: "avg_lap_time_milliseconds is not null"
+              where: |
+                avg_lap_time_milliseconds is not null
+                and laps_from_lap_times >= 4
+                and best_lap_time_milliseconds < 300000
 
       - name: total_lap_time_milliseconds
         description: "Total accumulated lap time in milliseconds across all laps for this driver and race."

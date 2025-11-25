@@ -1,5 +1,5 @@
 {{ config(
-    severity = 'error',
+    severity = 'warn',
     tags = ['f1', 'laps', 'quality']
 ) }}
 

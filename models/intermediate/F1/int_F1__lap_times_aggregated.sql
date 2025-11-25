@@ -27,13 +27,24 @@ aggregated_laps as (
         race_id,
         driver_surrogate_key,
         driver_id,
-        count(*)                     as laps_from_lap_times,
-        min(lap_time_milliseconds)   as best_lap_time_milliseconds,
-        avg(lap_time_milliseconds)   as avg_lap_time_milliseconds,
-        sum(lap_time_milliseconds)   as total_lap_time_milliseconds,
-        min(lap_position)            as best_lap_position,
-        max(lap_position)            as worst_lap_position,
-        avg(lap_position)            as avg_lap_position
+        count(*)          as laps_from_lap_times,
+        min(case 
+                when is_anomalous_lap = false 
+                then lap_time_milliseconds 
+            end)          as best_lap_time_milliseconds,
+
+        avg(case 
+                when is_anomalous_lap = false 
+                then lap_time_milliseconds 
+            end)          as avg_lap_time_milliseconds,
+
+        sum(case 
+                when is_anomalous_lap = false 
+                then lap_time_milliseconds 
+            end)          as total_lap_time_milliseconds,
+        min(lap_position) as best_lap_position,
+        max(lap_position) as worst_lap_position,
+        avg(lap_position) as avg_lap_position
     from laps
     group by 1,2,3,4
 ),

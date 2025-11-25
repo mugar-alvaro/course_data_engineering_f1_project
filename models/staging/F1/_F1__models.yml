@@ -764,6 +764,16 @@ models:
         description: "Ingestion timestamp propagated from the Bronze layer."
         tests:
           - not_null
+      
+      - name: duplicate_race_result_count
+        description: >
+          Number of duplicated race result rows originally present in the Bronze source 
+          for the same (race_id, driver_id) combination.
+          A value of 1 indicates no duplicates; values greater than 1 indicate data
+          issues in the raw dataset. This field is used as a data quality indicator.
+        tests:
+          - not_null
+          - non_negative
 
   - name: stg_F1__seasons
     description: "Reference table of Formula 1 seasons."

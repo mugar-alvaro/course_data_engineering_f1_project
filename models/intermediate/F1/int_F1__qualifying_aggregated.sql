@@ -1,15 +1,8 @@
--- PURPOSE:
--- Intermediate model that consolidates qualifying data at driver-race grain.
--- It keeps all detailed fields from staging and adds:
---   - best_qualifying_time_milliseconds
---   - best_qualifying_session (Q1 / Q2 / Q3 / NONE)
---   - qualifying_sessions_entered (1–3)
---   - session qualification flags (qualified_for_q2, qualified_for_q3)
--- This model prepares clean qualifying metrics for Gold without losing detail.
-
 {{ config(
-    materialized = 'table',
-    post_hook    = "{{ f1_log_model_run() }}"
+    materialized      = 'incremental',
+    unique_key        = ['race_surrogate_key', 'driver_surrogate_key'],
+    on_schema_change  = 'append_new_columns',
+    post_hook         = "{{ f1_log_model_run() }}"
 ) }}
 
 with base as (
@@ -32,6 +25,9 @@ with base as (
         is_anomalous_q3,
         ingestion_timestamp
     from {{ ref('stg_F1__qualifying') }}
+    {% if var('f1_use_incremental', true) and is_incremental() %}
+        where {{ f1_incremental_filter('ingestion_timestamp') }}
+    {% endif %}
 ),
 
 best_time as (
@@ -69,7 +65,7 @@ session_flags as (
         (case when q1_time_milliseconds is not null then 1 else 0 end +
          case when q2_time_milliseconds is not null then 1 else 0 end +
          case when q3_time_milliseconds is not null then 1 else 0 end)
-        as qualifying_sessions_entered,
+            as qualifying_sessions_entered,
 
         case when q2_time_milliseconds is not null then true else false end
             as qualified_for_q2,
@@ -80,5 +76,7 @@ session_flags as (
     from best_session
 )
 
-select *
+select
+    {{ surrogate_key(['race_surrogate_key', 'driver_surrogate_key']) }} as race_driver_surrogate_key,
+    *
 from session_flags

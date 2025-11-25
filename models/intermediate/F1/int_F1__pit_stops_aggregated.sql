@@ -1,12 +1,8 @@
--- PURPOSE:
--- Este modelo intermediate cambia el grano de "una fila por PIT STOP"
--- a "una fila por PILOTO y CARRERA (race_id + driver_id)".
--- Así concentramos todas las métricas de paradas en boxes (nº de paradas,
--- mejor/peor/media, etc.) en un único sitio para luego enriquecer resultados.
-
 {{ config(
-    materialized = 'table',
-    post_hook    = "{{ f1_log_model_run() }}"
+    materialized      = 'incremental',
+    unique_key        = ['race_surrogate_key', 'driver_surrogate_key'],
+    on_schema_change  = 'append_new_columns',
+    post_hook         = "{{ f1_log_model_run() }}"
 ) }}
 
 with pit_stops as (
@@ -20,6 +16,9 @@ with pit_stops as (
         pit_stop_time_of_day,
         pit_stop_duration_milliseconds
     from {{ ref('stg_F1__pit_stops') }}
+    {% if var('f1_use_incremental', true) and is_incremental() %}
+        where {{ f1_incremental_filter('ingestion_timestamp') }}
+    {% endif %}
 ),
 
 aggregated_pit as (
@@ -39,5 +38,8 @@ aggregated_pit as (
     group by 1,2,3,4
 )
 
-select *
+select
+    {{ surrogate_key(['race_surrogate_key', 'driver_surrogate_key']) }} 
+        as race_driver_surrogate_key,
+    *
 from aggregated_pit

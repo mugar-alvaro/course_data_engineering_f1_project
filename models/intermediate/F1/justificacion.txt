@@ -1,0 +1,22 @@
+
+2. int_F1__lap_times_aggregated — Ritmo por piloto-carrera
+Convierte el grano de “una fila por vuelta” - “una fila por piloto y carrera”.
+Calcula métricas técnicas esenciales (best/avg/total lap time).
+Compara vueltas reales vs vueltas reportadas, generando flags de calidad de dato.
+Identifica inconsistencias mediante lap_match_category y lap_data_mismatch_flag.
+Prepara datos de ritmo de carrera sin obligar a recalcular aggregations en Gold.
+
+3. int_F1__pit_stops_aggregated — Estrategia y eficiencia en boxes
+Cambia el grano de “una fila por parada” - “piloto-carrera”.
+Calcula métricas de boxes: nº de paradas, mejor/parada media, tiempo total perdido.
+Centraliza lógica compleja que se reutilizará en Gold (undercut, overcut, eficiencia).
+Identifica la primera y última parada, clave para análisis de estrategia.
+Elimina la necesidad de agrupar pit stops en Gold, simplificando las facts.
+
+4. int_F1__qualifying_aggregated — Consolidación completa de clasificación
+
+Consolida Q1, Q2 y Q3 a un modelo uniforme por piloto-carrera.
+Calcula el mejor tiempo de clasificación de forma robusta.
+Indica la sesión donde se obtuvo el mejor tiempo (best_qualifying_session).
+Añade metadatos clave: sesiones disputadas, flags de Q2/Q3, anomalías.
+Deja lista toda la información de qualifying para ser usada directamente en Gold.

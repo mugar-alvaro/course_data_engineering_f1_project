@@ -1,5 +1,3 @@
-{{ config(enabled = false) }}
-
 select
     race_id,
     driver_id,

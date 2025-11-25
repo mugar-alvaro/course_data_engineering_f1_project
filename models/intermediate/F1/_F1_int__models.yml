@@ -1,0 +1,366 @@
+version: 2
+
+models:
+
+  - name: int_F1__lap_times_aggregated
+    description: >
+      Intermediate model at race–driver grain that reconciles lap-by-lap timing
+      from stg_F1__lap_times with race_laps_completed from stg_F1__results.
+      It computes summary lap metrics (best/average/total time and positions)
+      and classifies the consistency between both sources with lap_match_category
+      and lap_data_mismatch_flag for downstream data quality analysis.
+    columns:
+      - name: race_driver_surrogate_key
+        description: "Surrogate key generated from race_surrogate_key and driver_surrogate_key."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: laps_from_lap_times
+        description: >
+          Number of laps for this driver and race derived from stg_F1__lap_times.
+          Used to compare against race_laps_completed from stg_F1__results.
+        tests:
+          - non_negative
+
+      - name: laps_from_results
+        description: >
+          Number of laps completed by the driver according to stg_F1__results
+          (race_laps_completed). Used to reconcile with laps_from_lap_times.
+        tests:
+          - non_negative
+
+      - name: best_lap_time_milliseconds
+        description: "Best lap time in milliseconds across all laps for this driver and race."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+              where: "best_lap_time_milliseconds is not null"
+
+      - name: avg_lap_time_milliseconds
+        description: "Average lap time in milliseconds across all laps for this driver and race."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+              where: |
+                avg_lap_time_milliseconds is not null
+                and laps_from_lap_times >= 4
+                and best_lap_time_milliseconds < 300000
+
+      - name: total_lap_time_milliseconds
+        description: "Total accumulated lap time in milliseconds across all laps for this driver and race."
+        tests:
+          - non_negative
+
+      - name: best_lap_position
+        description: "Best race position reached by the driver at any lap (minimum lap_position value)."
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: worst_lap_position
+        description: "Worst race position reached by the driver at any lap (maximum lap_position value)."
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: avg_lap_position
+        description: "Average race position across all laps for this driver and race."
+
+      - name: lap_match_category
+        description: >
+          Categorical classification of the consistency between laps_from_lap_times
+          and laps_from_results. Values:
+          - 'match': both sources agree exactly;
+          - 'small_mismatch': difference within 5 laps;
+          - 'large_mismatch': difference greater than 5 laps;
+          - 'only_results': only stg_F1__results has data;
+          - 'only_lap_times': only stg_F1__lap_times has data;
+          - 'no_data': no data in either source.
+
+      - name: lap_data_mismatch_flag
+        description: >
+          Boolean flag indicating whether both sources have non-null lap counts
+          and they disagree (laps_from_lap_times <> laps_from_results).
+          Used as a binary data quality indicator.
+        tests:
+          - not_null
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['race_surrogate_key', 'driver_surrogate_key']
+
+  - name: int_F1__pit_stops_aggregated
+    description: >
+      Intermediate model at race–driver grain that aggregates pit stop information
+      from stg_F1__pit_stops. It computes the number of pit stops, summary
+      duration metrics (best/worst/average/total) and the first and last lap
+      in which a pit stop occurred for each driver and race.
+    columns:
+      - name: race_driver_surrogate_key
+        description: "Surrogate key generated from race_surrogate_key and driver_surrogate_key."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: pit_stop_count
+        description: "Total number of pit stops performed by the driver in this race."
+        tests:
+          - non_negative
+
+      - name: best_pit_stop_duration_milliseconds
+        description: "Shortest pit stop duration in milliseconds for this driver and race."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 120000
+              where: "best_pit_stop_duration_milliseconds is not null"
+
+      - name: worst_pit_stop_duration_milliseconds
+        description: "Longest pit stop duration in milliseconds for this driver and race."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 120000
+              where: "worst_pit_stop_duration_milliseconds is not null"
+
+      - name: avg_pit_stop_duration_milliseconds
+        description: "Average pit stop duration in milliseconds for this driver and race."
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 120000
+              where: "avg_pit_stop_duration_milliseconds is not null"
+
+      - name: total_pit_stop_duration_milliseconds
+        description: "Total time spent in pit lane in milliseconds for this driver and race."
+        tests:
+          - non_negative
+
+      - name: first_pit_lap_number
+        description: "Lap number in which the driver made the first recorded pit stop in the race."
+        tests:
+          - non_negative
+          - valid_lap_range
+
+      - name: last_pit_lap_number
+        description: "Lap number in which the driver made the last recorded pit stop in the race."
+        tests:
+          - non_negative
+          - valid_lap_range
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['race_surrogate_key', 'driver_surrogate_key']
+
+  - name: int_F1__qualifying_enriched
+    description: >
+      Intermediate model at race–driver grain that enriches qualifying results
+      from stg_F1__qualifying. It derives the best qualifying time across Q1, Q2
+      and Q3, identifies the session where this best time was set, and computes
+      additional flags and counts such as qualifying_sessions_entered,
+      qualified_for_q2 and qualified_for_q3 for downstream Gold models.
+    columns:
+      - name: race_driver_surrogate_key
+        description: "Surrogate key generated from race_surrogate_key and driver_surrogate_key."
+        tests:
+          - not_null
+          - unique
+
+      - name: qualify_surrogate_key
+        description: "Surrogate key generated from qualifyId in stg_F1__qualifying."
+        tests:
+          - not_null
+          - unique
+
+      - name: qualify_id
+        description: "Natural identifier for the qualifying result entry."
+        tests:
+          - not_null
+          - unique
+
+      - name: race_surrogate_key
+        description: "Surrogate key referencing the race."
+        tests:
+          - not_null
+
+      - name: race_id
+        description: "Identifier of the race."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__races')
+              field: race_id
+
+      - name: driver_surrogate_key
+        description: "Surrogate key referencing the driver."
+        tests:
+          - not_null
+
+      - name: driver_id
+        description: "Identifier of the driver."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__drivers')
+              field: driver_id
+
+      - name: constructor_surrogate_key
+        description: "Surrogate key referencing the constructor."
+        tests:
+          - not_null
+
+      - name: constructor_id
+        description: "Identifier of the constructor."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_F1__constructors')
+              field: constructor_id
+
+      - name: car_number
+        description: "Driver’s race number for this qualifying session."
+
+      - name: qualifying_position
+        description: "Final grid position after qualifying for the race."
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: q1_time_milliseconds
+        description: "Q1 lap time in milliseconds for this driver and race."
+        tests:
+          - max_ms:
+              max_ms: 600000
+              where: "is_anomalous_q1 = false"
+
+      - name: is_anomalous_q1
+        description: "Boolean flag indicating whether the Q1 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
+
+      - name: q2_time_milliseconds
+        description: "Q2 lap time in milliseconds for this driver and race."
+        tests:
+          - max_ms:
+              max_ms: 600000
+              where: "is_anomalous_q2 = false"
+
+      - name: is_anomalous_q2
+        description: "Boolean flag indicating whether the Q2 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
+
+      - name: q3_time_milliseconds
+        description: "Q3 lap time in milliseconds for this driver and race."
+        tests:
+          - max_ms:
+              max_ms: 600000
+              where: "is_anomalous_q3 = false"
+
+      - name: is_anomalous_q3
+        description: "Boolean flag indicating whether the Q3 time exceeds the anomaly threshold (600,000 ms)."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp propagated from the Bronze layer via stg_F1__qualifying."
+        tests:
+          - not_null
+
+      - name: best_qualifying_time_milliseconds
+        description: >
+          Best qualifying lap time in milliseconds across Q1, Q2 and Q3 for this
+          driver and race, computed using the minimum non-zero time.
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+              where: "best_qualifying_time_milliseconds is not null"
+
+      - name: best_qualifying_session
+        description: >
+          Session in which the best qualifying time was set. Possible values:
+          'Q1', 'Q2', 'Q3' or 'NONE' when no valid time is available.
+
+      - name: qualifying_sessions_entered
+        description: >
+          Number of qualifying sessions (Q1, Q2, Q3) in which the driver has a
+          non-null time for this race. Ranges from 0 to 3.
+        tests:
+          - non_negative
+
+      - name: qualified_for_q2
+        description: >
+          Boolean flag indicating whether the driver participated in Q2
+          (q2_time_milliseconds is not null).
+        tests:
+          - not_null
+
+      - name: qualified_for_q3
+        description: >
+          Boolean flag indicating whether the driver participated in Q3
+          (q3_time_milliseconds is not null).
+        tests:
+          - not_null
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['race_surrogate_key', 'driver_surrogate_key']

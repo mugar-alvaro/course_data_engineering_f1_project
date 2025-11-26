@@ -39,7 +39,7 @@ with base as (
 aggregated as (
 
     select
-        -- Clave del mart
+        -- Clave
         circuit_key,
         season_era,
 

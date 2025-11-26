@@ -39,7 +39,7 @@ with base as (
 aggregated as (
 
     select
-        -- Clave del mart
+        -- Clave
         race_key,
 
         -- Contexto de carrera

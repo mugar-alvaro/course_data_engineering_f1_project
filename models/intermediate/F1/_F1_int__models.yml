@@ -116,9 +116,18 @@ models:
         tests:
           - not_null
 
+      - name: ingestion_timestamp
+        description: >
+          Watermark timestamp for this race–driver record, used to support
+          incremental loading. It typically corresponds to the most recent
+          ingestion_timestamp from the underlying lap_times and/or results data.
+        tests:
+          - not_null
+
     tests:
       - no_duplicate_combination:
           combination_of_columns: ['race_surrogate_key', 'driver_surrogate_key']
+
 
   - name: int_F1__pit_stops_aggregated
     description: >
@@ -204,12 +213,22 @@ models:
         tests:
           - non_negative
           - valid_lap_range
+          
+      - name: ingestion_timestamp
+        description: >
+          Watermark timestamp for this race–driver record, used to support
+          incremental loading. It is propagated from the Bronze layer via
+          stg_F1__pit_stops and corresponds to the most recent pit stop
+          ingestion for this race and driver.
+        tests:
+          - not_null
 
     tests:
       - no_duplicate_combination:
           combination_of_columns: ['race_surrogate_key', 'driver_surrogate_key']
 
-  - name: int_F1__qualifying_enriched
+
+  - name: int_F1__qualifying_aggregated
     description: >
       Intermediate model at race–driver grain that enriches qualifying results
       from stg_F1__qualifying. It derives the best qualifying time across Q1, Q2

@@ -6,22 +6,36 @@
 ) }}
 
 with pit_stops as (
+
     select
-        race_surrogate_key,
-        race_id,
-        driver_surrogate_key,
-        driver_id,
-        stop_number,
-        lap_number,
-        pit_stop_time_of_day,
-        pit_stop_duration_milliseconds
-    from {{ ref('stg_F1__pit_stops') }}
+        s.race_surrogate_key,
+        s.race_id,
+        s.driver_surrogate_key,
+        s.driver_id,
+        s.stop_number,
+        s.lap_number,
+        s.pit_stop_time_of_day,
+        s.pit_stop_duration_milliseconds,
+        s.ingestion_timestamp
+    from {{ ref('stg_F1__pit_stops') }} as s
+
     {% if var('f1_use_incremental', true) and is_incremental() %}
-        where {{ f1_incremental_filter('ingestion_timestamp') }}
+
+    join (
+        select
+            coalesce(max(ingestion_timestamp), '1900-01-01'::timestamp) as max_ingestion_timestamp
+        from {{ this }}
+    ) as last_run
+        on 1 = 1
+
+    where s.ingestion_timestamp > last_run.max_ingestion_timestamp
+
     {% endif %}
+
 ),
 
 aggregated_pit as (
+
     select
         race_surrogate_key,
         race_id,
@@ -33,7 +47,8 @@ aggregated_pit as (
         avg(pit_stop_duration_milliseconds) as avg_pit_stop_duration_milliseconds,
         sum(pit_stop_duration_milliseconds) as total_pit_stop_duration_milliseconds,
         min(lap_number)                     as first_pit_lap_number,
-        max(lap_number)                     as last_pit_lap_number
+        max(lap_number)                     as last_pit_lap_number,
+        max(ingestion_timestamp)            as ingestion_timestamp
     from pit_stops
     group by 1,2,3,4
 )

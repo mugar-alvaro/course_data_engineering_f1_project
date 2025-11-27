@@ -1,0 +1,283 @@
+version: 2
+
+models:
+
+  - name: mart_F1__circuit_performance
+    description: >
+      Circuit-level performance mart aggregating race-driver level data by circuit
+      and season era. It characterizes each circuit by overtaking dynamics, points
+      distribution, reliability profile, pit stop intensity and pace indicators.
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: circuit_key
+        description: "Surrogate key of the circuit (FK to dim_F1__circuits)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__circuits')
+              field: circuit_key
+
+      - name: season_era
+        description: >
+          Era classification of the season for the aggregated entries in this row
+          (CLASSIC, MODERN, HYBRID_ERA).
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CLASSIC', 'MODERN', 'HYBRID_ERA']
+
+      - name: circuit_name
+        description: "Official circuit name aggregated from dim_F1__circuits."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: circuit_display_name
+        description: "Human-friendly circuit display name (e.g. 'Monza (Monza, ITALY)')."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: circuit_country
+        description: "Country where the circuit is located."
+        data_type: varchar
+
+      - name: circuit_city
+        description: "City or locality where the circuit is located."
+        data_type: varchar
+
+      - name: altitude_meters
+        description: "Altitude of the circuit above sea level in meters."
+        data_type: number
+
+      - name: altitude_category
+        description: >
+          Altitude band for the circuit: LOW, MEDIUM, HIGH or UNKNOWN depending
+          on altitude_meters.
+        data_type: varchar
+
+      - name: is_high_altitude_circuit
+        description: "Boolean flag set to TRUE when altitude_meters >= 1000m."
+        data_type: boolean
+
+      - name: hemisphere
+        description: "Hemisphere classification: 'NORTH' or 'SOUTH', derived from latitude."
+        data_type: varchar
+
+      - name: driver_race_count
+        description: "Total number of race-driver entries used in the aggregation for this circuit and era."
+        data_type: number
+        tests:
+          - not_null
+          - non_negative
+
+      - name: distinct_seasons_count
+        description: "Number of distinct F1 seasons represented for this circuit and era."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: distinct_decades_count
+        description: "Number of distinct decades represented for this circuit and era."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: avg_positions_gained
+        description: >
+          Average (grid_position - final_position_order) across entries.
+          Positive values indicate circuits where drivers tend to gain positions
+          relative to the grid; negative values suggest positional loss.
+        data_type: float
+
+      - name: gain_positions_ratio
+        description: >
+          Ratio of entries where the driver gained at least one position
+          (grid - final_position_order > 0).
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: lose_positions_ratio
+        description: >
+          Ratio of entries where the driver lost at least one position
+          (grid - final_position_order < 0).
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: points_finish_ratio
+        description: "Ratio of entries where the driver scored points (race_points > 0)."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: avg_grid_position_points_finishers
+        description: >
+          Average starting grid position among drivers who finished in the points.
+          Lower values indicate that starting near the front is more important.
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: pole_to_win_ratio
+        description: >
+          Among all races where there was a pole-sitter (grid_position = 1),
+          share of cases where pole converted to a win (final_position_order = 1).
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: dnf_ratio
+        description: "Ratio of entries classified as DNF (did not finish)."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: finished_ratio
+        description: "Ratio of entries with status_outcome = 'FINISHED'."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: disqualified_ratio
+        description: "Ratio of entries with status_outcome = 'DISQUALIFIED'."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: avg_pit_stops_per_entry
+        description: "Average number of pit stops per race-driver entry at this circuit and era."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: avg_best_lap_time_ms
+        description: "Average best lap time (in milliseconds) across entries at this circuit and era."
+        data_type: number
+        tests:
+          - non_negative
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['circuit_key', 'season_era']
+
+
+  - name: mart_F1__driver_racecraft_performance
+    description: >
+      Driver-season level mart focused on racecraft and Sunday performance.
+      It summarizes how each driver gains or loses positions, converts starts
+      into finishes, scores points, and salvages or throws away race opportunities.
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: driver_key
+        description: "Surrogate key of the driver (FK to dim_F1__drivers)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__drivers')
+              field: driver_key
+
+      - name: driver_full_name
+        description: "Full driver name aggregated from dim_F1__drivers."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: driver_display_name
+        description: "Short display name (e.g. 'L. Hamilton') aggregated from dim_F1__drivers."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: driver_code
+        description: >
+          Three-letter driver code; 'NO DATA' is used when the code is missing
+          in the original dimension.
+        data_type: varchar
+
+      - name: season_year
+        description: "Season year for which the driver metrics are calculated."
+        data_type: number
+        tests:
+          - not_null
+          - valid_year_range:
+              min_year: 1950
+              max_year: 2050
+
+      - name: season_era
+        description: "Era classification for the given season (CLASSIC, MODERN, HYBRID_ERA)."
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CLASSIC', 'MODERN', 'HYBRID_ERA']
+
+      - name: races_count
+        description: "Number of race entries for this driver in the given season."
+        data_type: number
+        tests:
+          - not_null
+          - non_negative
+
+      - name: avg_positions_gained
+        description: >
+          Average positions gained per race, computed as (grid_position - final_position_order).
+          Positive values suggest strong overtaking/racecraft; negative values suggest
+          loss of positions relative to the grid.
+        data_type: float
+
+      - name: finish_ratio
+        description: "Share of races finished (including 'classified' if applicable)."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: dnf_ratio
+        description: "Share of races that ended in DNF for this driver and season."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: avg_points_per_race
+        description: "Average points scored per race for this driver and season."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: points_finish_ratio
+        description: "Share of races in which the driver scored points."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: salvage_ratio
+        description: >
+          Among races where the driver started P11 or worse, share of races in which
+          the driver still scored points (ability to salvage difficult Sundays).
+          If the driver never started P11 or worse, the value is 0.0.
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: throw_away_ratio
+        description: >
+          Among races where the driver started in the top 5, share of races that ended
+          with 0 points (tendency to throw away strong starting positions).
+          If the driver never started in the top 5, the value is 0.0.
+        data_type: float
+        tests:
+          - non_negative
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['driver_key', 'season_year']

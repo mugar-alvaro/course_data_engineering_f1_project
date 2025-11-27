@@ -73,12 +73,10 @@ with_driver_constructor_status as (
         s.status_description,
 
         case
-            -- 1) Terminó la carrera
             when upper(s.status_description) = 'FINISHED'
               or s.status_description like '+%Lap%'
             then 'FINISHED'
 
-            -- 2) Descalificación / exclusión técnica
             when upper(s.status_description) in (
                     'DISQUALIFIED',
                     'EXCLUDED',
@@ -86,7 +84,6 @@ with_driver_constructor_status as (
                 )
             then 'DISQUALIFIED'
 
-            -- 3) No llegó a correr / no quedó clasificado
             when upper(s.status_description) in (
                     'DID NOT PREQUALIFY',
                     'DID NOT QUALIFY',
@@ -104,7 +101,6 @@ with_driver_constructor_status as (
                 )
             then 'NOT_STARTED_OR_CLASSIFIED'
 
-            -- 4)  Abandono en carrera (DNF)
             else 'DNF'
         end as status_outcome
 
@@ -165,11 +161,9 @@ with_qualifying as (
 )
 
 select
-    -- Claves fact
     race_result_key,
     race_driver_key,
 
-    -- Claves a dimensiones
     race_key,
     driver_key,
     constructor_key,
@@ -177,33 +171,25 @@ select
     season_key,
     circuit_key,
 
-    -- IDs de negocio
     race_id,
     driver_id,
     constructor_id,
     race_status_id,
-
-    -- Métricas de resultado
-    car_number,                       -- degenerate dim 
+    car_number,
     race_grid_position,
     race_position,
     race_final_position_order,
     race_points,
     race_laps_completed,
     race_duration_milliseconds,
-
     race_fastest_lap,
     race_fastest_lap_rank,
     race_fastest_lap_time_milliseconds,
     race_fastest_lap_top_speed,
-
-    -- Métricas / flags de calidad
     is_inconsistent_fastest_lap,
     duplicate_race_result_count,
     lap_match_category,
     lap_data_mismatch_flag,
-
-    -- Métricas de laps
     laps_from_lap_times,
     best_lap_time_milliseconds,
     avg_lap_time_milliseconds,
@@ -211,8 +197,6 @@ select
     best_lap_position,
     worst_lap_position,
     avg_lap_position,
-
-    -- Métricas de pit stops
     pit_stop_count,
     best_pit_stop_duration_milliseconds,
     worst_pit_stop_duration_milliseconds,
@@ -220,18 +204,12 @@ select
     total_pit_stop_duration_milliseconds,
     first_pit_lap_number,
     last_pit_lap_number,
-
-    -- Métricas de quali
     qualifying_position,
     best_qualifying_time_milliseconds,
     qualifying_sessions_entered,
     qualified_for_q2,
     qualified_for_q3,
-
-    -- Dim degenerada
     status_outcome,
-
-    -- Metadata
     ingestion_timestamp
 
 from with_qualifying

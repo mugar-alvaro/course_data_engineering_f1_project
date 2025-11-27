@@ -1,0 +1,724 @@
+version: 2
+
+models:
+
+  - name: dim_F1__circuits
+    description: >
+      Dimension table for Formula 1 circuits, enriched with geospatial attributes
+      (latitude, longitude, altitude) and business-friendly fields such as
+      circuit_display_name, hemisphere and altitude categories.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: circuit_key
+        description: "Surrogate key for the circuit, generated from the source circuit_surrogate_key."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: circuit_id
+        description: "Natural identifier of the circuit as provided in the original dataset."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: circuit_reference
+        description: "Short reference or slug used to identify the circuit (based on circuitRef in the source)."
+        data_type: varchar
+
+      - name: circuit_name
+        description: "Official name of the circuit."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: circuit_display_name
+        description: >
+          Human-friendly circuit display name combining circuit name, city and country.
+          Example: 'Silverstone (Silverstone, UK)'.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: city
+        description: "City or locality where the circuit is located."
+        data_type: varchar
+
+      - name: country
+        description: "Country where the circuit is located."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude of the circuit as a floating point number."
+        data_type: float
+
+      - name: longitude
+        description: "Longitude of the circuit as a floating point number."
+        data_type: float
+
+      - name: altitude_meters
+        description: "Altitude of the circuit above sea level in meters."
+        data_type: number
+
+      - name: hemisphere
+        description: >
+          Hemisphere classification derived from latitude.
+          'NORTH' when latitude >= 0, otherwise 'SOUTH'.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: altitude_category
+        description: >
+          Altitude band for the circuit:
+          - 'LOW' for altitude_meters < 200
+          - 'MEDIUM' for altitude_meters between 200 and 800
+          - 'HIGH' for altitude_meters > 800
+          - 'UNKNOWN' when altitude_meters is NULL.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: is_high_altitude_circuit
+        description: >
+          Boolean flag set to TRUE when altitude_meters >= 1000, used to identify
+          circuits where altitude can have a significant impact on performance.
+        data_type: boolean
+        tests:
+          - not_null
+
+
+  - name: dim_F1__drivers
+    description: >
+      Dimension table for Formula 1 drivers, enriched with display names and
+      derived attributes such as birth year and birth decade for demographic analysis.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: driver_key
+        description: "Surrogate key for the driver, generated from driver_surrogate_key in staging."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: driver_id
+        description: "Natural identifier of the driver as provided in the source dataset."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: driver_reference
+        description: "Short reference or slug for the driver (driverRef in the source)."
+        data_type: varchar
+
+      - name: driver_number
+        description: "Permanent racing number assigned to the driver."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: driver_code
+        description: "Official three-letter driver code used by Formula 1."
+        data_type: varchar
+
+      - name: driver_forename
+        description: "Driver’s first name."
+        data_type: varchar
+
+      - name: driver_surname
+        description: "Driver’s last name."
+        data_type: varchar
+
+      - name: driver_full_name
+        description: "Concatenation of driver_forename and driver_surname, e.g. 'Lewis Hamilton'."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: driver_display_name
+        description: "Short display name, e.g. 'L. Hamilton', for use in dashboards and visualizations."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: date_of_birth
+        description: "Driver’s date of birth."
+        data_type: date
+
+      - name: birth_year
+        description: "Year of birth derived from date_of_birth."
+        data_type: number
+        tests:
+          - non_negative
+          - valid_year_range:
+              min_year: 1850
+              max_year: 2050
+
+      - name: birth_decade
+        description: "Decade of birth derived from birth_year (e.g. 1980 for drivers born in the 1980s)."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: driver_nationality
+        description: "Driver’s nationality as provided in the source dataset."
+        data_type: varchar
+
+
+  - name: dim_F1__races
+    description: >
+      Dimension table for Formula 1 races, including season year, round number,
+      circuit references and derived calendar attributes such as month and weekday.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: race_key
+        description: "Surrogate key for the race, generated from race_surrogate_key in staging."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: race_id
+        description: "Natural identifier of the race as provided in the source dataset."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: season_year
+        description: "Season year in which the race takes place."
+        data_type: number
+        tests:
+          - not_null
+          - valid_year_range:
+              min_year: 1950
+              max_year: 2050
+
+      - name: round_number
+        description: "Round number of the race within the season calendar."
+        data_type: number
+        tests:
+          - positive
+
+      - name: race_name
+        description: "Official name of the race or Grand Prix."
+        data_type: varchar
+
+      - name: race_display_name
+        description: "Composite display name in the format 'YYYY - Race Name'."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: circuit_surrogate_key
+        description: "Surrogate key of the circuit where the race took place."
+        data_type: number
+
+      - name: circuit_id
+        description: "Natural identifier of the circuit associated with the race."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__circuits')
+              field: circuit_id
+
+      - name: race_date
+        description: "Calendar date when the race took place."
+        data_type: date
+        tests:
+          - not_null
+
+      - name: race_time_of_day
+        description: "Scheduled start time of the race (UTC)."
+        data_type: time
+
+      - name: race_datetime_utc
+        description: "Timestamp combining race_date and race_time_of_day in UTC."
+        data_type: timestamp_ntz
+
+      - name: race_weekday_name
+        description: "Name of the weekday on which the race took place (e.g. 'SUNDAY')."
+        data_type: varchar
+
+      - name: race_month_number
+        description: "Numeric month (1–12) in which the race took place."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: race_month_name
+        description: "Name of the month in which the race took place."
+        data_type: varchar
+
+
+  - name: dim_F1__seasons
+    description: >
+      Dimension table for Formula 1 seasons, including descriptive name, decade
+      and era classification (CLASSIC, MODERN, HYBRID_ERA).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: season_key
+        description: "Surrogate key for the season, generated from season_surrogate_key in staging."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: season_year
+        description: "Formula 1 championship year."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+          - valid_year_range:
+              min_year: 1950
+              max_year: 2050
+
+      - name: season_name
+        description: "Human-friendly season name, e.g. 'Season 2021'."
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: season_decade
+        description: "Decade bucket derived from season_year (e.g. 1980, 1990, 2000)."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: season_era
+        description: >
+          Era classification of the season:
+          - 'CLASSIC' for seasons before 1990
+          - 'MODERN' for seasons between 1990 and 2013
+          - 'HYBRID_ERA' for seasons from 2014 onwards.
+        data_type: varchar
+        tests:
+          - not_null
+
+
+  - name: dim_F1__status
+    description: >
+      Dimension table for standardized status codes used in race and sprint results
+      (e.g. 'FINISHED', 'RETIRED', '+1 LAP').
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: status_key
+        description: "Surrogate key for the status code, generated from status_surrogate_key in staging."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: status_id
+        description: "Natural identifier of the status code as provided in the original dataset."
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: status_description
+        description: "Uppercased description of the status used in race and sprint classifications."
+        data_type: varchar
+        tests:
+          - not_null
+
+  - name: fct_F1__race_results
+    description: >
+      Fact table at race-driver grain for main Grand Prix results.
+      Each row represents the performance of a single driver in a single race,
+      enriched with circuit, season, lap-time aggregates, pit stop metrics,
+      qualifying metrics and data quality flags.
+    config:
+      contract:
+        enforced: true
+    columns:
+
+
+      - name: race_result_key
+        description: >
+          Surrogate key for the race result, generated from race_result_surrogate_key
+          in the staging layer. Serves as the primary key of this fact table.
+        data_type: number
+        tests:
+          - not_null
+          - unique
+
+      - name: race_driver_key
+        description: >
+          Deterministic key generated from (race_surrogate_key, driver_surrogate_key),
+          representing the grain race-driver. May not be unique if the source dataset
+          contains duplicated results, which are tracked via duplicate_race_result_count.
+        data_type: varchar
+        tests:
+          - not_null
+
+
+      - name: race_key
+        description: "Foreign key to dim_F1__races (race_key)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__races')
+              field: race_key
+
+      - name: driver_key
+        description: "Foreign key to dim_F1__drivers (driver_key)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__drivers')
+              field: driver_key
+
+      - name: constructor_key
+        description: "Foreign key to dim_F1__constructors (constructor_key)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__constructors')
+              field: constructor_key
+
+      - name: status_key
+        description: "Foreign key to dim_F1__status (status_key)."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__status')
+              field: status_key
+
+      - name: season_key
+        description: "Foreign key to dim_F1__seasons (season_key)."
+        data_type: number
+        tests:
+          - relationships:
+              to: ref('dim_F1__seasons')
+              field: season_key
+
+      - name: circuit_key
+        description: "Foreign key to dim_F1__circuits (circuit_key) via the race."
+        data_type: number
+        tests:
+          - relationships:
+              to: ref('dim_F1__circuits')
+              field: circuit_key
+
+
+      - name: race_id
+        description: "Natural race identifier as provided in the original dataset."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__races')
+              field: race_id
+
+      - name: driver_id
+        description: "Natural driver identifier from the source dataset."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__drivers')
+              field: driver_id
+
+      - name: constructor_id
+        description: "Natural constructor identifier from the source dataset."
+        data_type: number
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_F1__constructors')
+              field: constructor_id
+
+      - name: race_status_id
+        description: "Natural status identifier from the status dictionary."
+        data_type: number
+        tests:
+          - relationships:
+              to: ref('dim_F1__status')
+              field: status_id
+
+
+      - name: car_number
+        description: "Car number used by the driver in this race (degenerate dimension)."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: race_grid_position
+        description: "Starting grid position for the race."
+        data_type: number
+        tests:
+          - valid_position_range:
+              min_value: 0
+              max_value: 39
+
+      - name: race_position
+        description: "Final numeric race position when available."
+        data_type: number
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: race_final_position_order
+        description: >
+          Final ordering position for classification purposes, used for ranking
+          drivers in official results.
+        data_type: number
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: race_points
+        description: "Points scored by the driver in the race according to FIA scoring rules."
+        data_type: float
+        tests:
+          - non_negative
+
+      - name: race_laps_completed
+        description: "Number of laps completed by the driver in the race."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: race_duration_milliseconds
+        description: "Total race duration in milliseconds, as provided by the source results."
+        data_type: number
+        tests:
+          - non_negative
+          - max_milliseconds_race:
+              max_value: 28800000
+              config:
+                severity: warn
+
+      - name: race_fastest_lap
+        description: >
+          Cleaned fastest lap number completed by the driver. Inconsistent original
+          values (fastestLap > race_laps_completed) are set to NULL in staging.
+        data_type: number
+        tests:
+          - non_negative
+          - valid_lap_range
+
+      - name: race_fastest_lap_rank
+        description: "Ranking of the driver’s fastest lap among all drivers in the race."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: race_fastest_lap_time_milliseconds
+        description: "Fastest lap time for the driver in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+
+      - name: race_fastest_lap_top_speed
+        description: "Top average speed reached during the driver’s fastest lap (km/h)."
+        data_type: float
+        tests:
+          - non_negative
+
+
+      - name: is_inconsistent_fastest_lap
+        description: >
+          Boolean flag indicating that the original fastestLap value was inconsistent
+          with race_laps_completed in the Bronze source.
+        data_type: boolean
+        tests:
+          - not_null
+
+      - name: duplicate_race_result_count
+        description: >
+          Number of duplicated race result rows detected in the Bronze source for the
+          same (race_id, driver_id) combination. 1 = no duplicates, >1 = data issue.
+        data_type: number
+        tests:
+          - not_null
+          - non_negative
+
+      - name: lap_match_category
+        description: >
+          Category describing consistency between lap_times and result data, derived
+          from int_F1__lap_times_aggregated. Typical values:
+          - 'exact_match'
+          - 'small_mismatch'
+          - 'large_mismatch'
+        data_type: varchar
+        tests:
+          - not_null:
+              where: "lap_data_mismatch_flag = true"
+
+      - name: lap_data_mismatch_flag
+        description: >
+          Boolean flag indicating that laps_from_lap_times and race_laps_completed
+          differ beyond the acceptable threshold.
+        data_type: boolean
+        tests:
+          - not_null
+
+
+      - name: laps_from_lap_times
+        description: "Number of laps derived from the lap_times table for this race-driver."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: best_lap_time_milliseconds
+        description: "Best lap time for this race-driver based on lap_times, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: avg_lap_time_milliseconds
+        description: "Average lap time for this race-driver based on lap_times, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: total_lap_time_milliseconds
+        description: "Total lap time accumulated by the driver, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: best_lap_position
+        description: "Best race position reached by the driver at any lap."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: worst_lap_position
+        description: "Worst race position reached by the driver at any lap."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: avg_lap_position
+        description: "Average race position of the driver across all recorded laps."
+        data_type: float
+        tests:
+          - non_negative
+
+
+      - name: pit_stop_count
+        description: "Total number of pit stops made by the driver during the race."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: best_pit_stop_duration_milliseconds
+        description: "Shortest pit stop duration for this driver and race, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: worst_pit_stop_duration_milliseconds
+        description: "Longest pit stop duration for this driver and race, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: avg_pit_stop_duration_milliseconds
+        description: "Average pit stop duration for this driver and race, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: total_pit_stop_duration_milliseconds
+        description: "Total time spent in pit stops for this driver and race, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: first_pit_lap_number
+        description: "Lap number of the first pit stop for this driver and race."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: last_pit_lap_number
+        description: "Lap number of the last pit stop for this driver and race."
+        data_type: number
+        tests:
+          - non_negative
+
+
+      - name: qualifying_position
+        description: "Final qualifying position on the grid, when available."
+        data_type: number
+        tests:
+          - valid_position_range:
+              min_value: 1
+              max_value: 39
+
+      - name: best_qualifying_time_milliseconds
+        description: "Best lap time achieved across Q1, Q2 and Q3, in milliseconds."
+        data_type: number
+        tests:
+          - non_negative
+          - max_ms:
+              max_ms: 600000
+
+      - name: qualifying_sessions_entered
+        description: "Number of qualifying sessions the driver took part in (1–3)."
+        data_type: number
+        tests:
+          - non_negative
+
+      - name: qualified_for_q2
+        description: "Boolean flag indicating whether the driver qualified for Q2."
+        data_type: boolean
+
+      - name: qualified_for_q3
+        description: "Boolean flag indicating whether the driver qualified for Q3."
+        data_type: boolean
+
+
+      - name: status_outcome
+        description: >
+          Business-friendly classification of the race outcome:
+          - 'FINISHED'
+          - 'DISQUALIFIED'
+          - 'NOT_STARTED_OR_CLASSIFIED'
+          - 'DNF'
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['FINISHED', 'DISQUALIFIED', 'NOT_STARTED_OR_CLASSIFIED', 'DNF']
+
+
+      - name: ingestion_timestamp
+        description: "Ingestion timestamp from the original staging record."
+        data_type: timestamp_ntz
+        tests:
+          - not_null
+
+    tests:
+      - no_duplicate_combination:
+          combination_of_columns: ['race_id', 'driver_id']
+          config:
+            severity: warn

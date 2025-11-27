@@ -13,7 +13,7 @@ models:
     columns:
       - name: circuit_key
         description: "Surrogate key for the circuit, generated from the source circuit_surrogate_key."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -103,7 +103,7 @@ models:
     columns:
       - name: driver_key
         description: "Surrogate key for the driver, generated from driver_surrogate_key in staging."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -183,7 +183,7 @@ models:
     columns:
       - name: race_key
         description: "Surrogate key for the race, generated from race_surrogate_key in staging."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -222,7 +222,7 @@ models:
 
       - name: circuit_surrogate_key
         description: "Surrogate key of the circuit where the race took place."
-        data_type: number
+        data_type: varchar
 
       - name: circuit_id
         description: "Natural identifier of the circuit associated with the race."
@@ -272,7 +272,7 @@ models:
     columns:
       - name: season_key
         description: "Surrogate key for the season, generated from season_surrogate_key in staging."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -320,7 +320,7 @@ models:
     columns:
       - name: status_key
         description: "Surrogate key for the status code, generated from status_surrogate_key in staging."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -354,7 +354,7 @@ models:
         description: >
           Surrogate key for the race result, generated from race_result_surrogate_key
           in the staging layer. Serves as the primary key of this fact table.
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - unique
@@ -371,7 +371,7 @@ models:
 
       - name: race_key
         description: "Foreign key to dim_F1__races (race_key)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -380,7 +380,7 @@ models:
 
       - name: driver_key
         description: "Foreign key to dim_F1__drivers (driver_key)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -389,7 +389,7 @@ models:
 
       - name: constructor_key
         description: "Foreign key to dim_F1__constructors (constructor_key)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -398,7 +398,7 @@ models:
 
       - name: status_key
         description: "Foreign key to dim_F1__status (status_key)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -407,7 +407,7 @@ models:
 
       - name: season_key
         description: "Foreign key to dim_F1__seasons (season_key)."
-        data_type: number
+        data_type: varchar
         tests:
           - relationships:
               to: ref('dim_F1__seasons')
@@ -415,7 +415,7 @@ models:
 
       - name: circuit_key
         description: "Foreign key to dim_F1__circuits (circuit_key) via the race."
-        data_type: number
+        data_type: varchar
         tests:
           - relationships:
               to: ref('dim_F1__circuits')
@@ -492,7 +492,7 @@ models:
 
       - name: race_points
         description: "Points scored by the driver in the race according to FIA scoring rules."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -537,7 +537,7 @@ models:
 
       - name: race_fastest_lap_top_speed
         description: "Top average speed reached during the driver’s fastest lap (km/h)."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -618,7 +618,7 @@ models:
 
       - name: avg_lap_position
         description: "Average race position of the driver across all recorded laps."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 

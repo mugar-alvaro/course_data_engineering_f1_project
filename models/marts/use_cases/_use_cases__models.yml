@@ -14,7 +14,7 @@ models:
     columns:
       - name: circuit_key
         description: "Surrogate key of the circuit (FK to dim_F1__circuits)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -93,13 +93,13 @@ models:
           Average (grid_position - final_position_order) across entries.
           Positive values indicate circuits where drivers tend to gain positions
           relative to the grid; negative values suggest positional loss.
-        data_type: float
+        data_type: number
 
       - name: gain_positions_ratio
         description: >
           Ratio of entries where the driver gained at least one position
           (grid - final_position_order > 0).
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -107,13 +107,13 @@ models:
         description: >
           Ratio of entries where the driver lost at least one position
           (grid - final_position_order < 0).
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: points_finish_ratio
         description: "Ratio of entries where the driver scored points (race_points > 0)."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -121,7 +121,7 @@ models:
         description: >
           Average starting grid position among drivers who finished in the points.
           Lower values indicate that starting near the front is more important.
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -129,31 +129,31 @@ models:
         description: >
           Among all races where there was a pole-sitter (grid_position = 1),
           share of cases where pole converted to a win (final_position_order = 1).
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: dnf_ratio
         description: "Ratio of entries classified as DNF (did not finish)."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: finished_ratio
         description: "Ratio of entries with status_outcome = 'FINISHED'."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: disqualified_ratio
         description: "Ratio of entries with status_outcome = 'DISQUALIFIED'."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: avg_pit_stops_per_entry
         description: "Average number of pit stops per race-driver entry at this circuit and era."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -180,7 +180,7 @@ models:
     columns:
       - name: driver_key
         description: "Surrogate key of the driver (FK to dim_F1__drivers)."
-        data_type: number
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -234,29 +234,29 @@ models:
           Average positions gained per race, computed as (grid_position - final_position_order).
           Positive values suggest strong overtaking/racecraft; negative values suggest
           loss of positions relative to the grid.
-        data_type: float
+        data_type: number
 
       - name: finish_ratio
         description: "Share of races finished (including 'classified' if applicable)."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: dnf_ratio
         description: "Share of races that ended in DNF for this driver and season."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: avg_points_per_race
         description: "Average points scored per race for this driver and season."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
       - name: points_finish_ratio
         description: "Share of races in which the driver scored points."
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -265,7 +265,7 @@ models:
           Among races where the driver started P11 or worse, share of races in which
           the driver still scored points (ability to salvage difficult Sundays).
           If the driver never started P11 or worse, the value is 0.0.
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 
@@ -274,7 +274,7 @@ models:
           Among races where the driver started in the top 5, share of races that ended
           with 0 points (tendency to throw away strong starting positions).
           If the driver never started in the top 5, the value is 0.0.
-        data_type: float
+        data_type: number
         tests:
           - non_negative
 

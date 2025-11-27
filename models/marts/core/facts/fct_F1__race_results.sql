@@ -52,7 +52,7 @@ with_race_circuit_season as (
 
     select
         br.*,
-        ra.season_year,
+        ra.race_year,
         ra.circuit_id,
         c.circuit_key,
         se.season_key
@@ -63,7 +63,7 @@ with_race_circuit_season as (
     left join {{ ref('dim_F1__circuits') }} c
         on ra.circuit_id = c.circuit_id
     left join {{ ref('dim_F1__seasons') }} se
-        on ra.season_year = se.season_year
+        on ra.race_year = se.season_year
 ),
 
 with_driver_constructor_status as (

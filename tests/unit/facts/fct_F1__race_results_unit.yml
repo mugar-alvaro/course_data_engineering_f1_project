@@ -157,7 +157,7 @@ unit_tests:
           - {
               race_key: 'SK_RACE_A',
               race_id: 1001,
-              season_year: 2020,
+              race_year: 2020,
               round_number: 1,
               race_name: 'Test Race A',
               race_display_name: '2020 - Test Race A',
@@ -173,7 +173,7 @@ unit_tests:
           - {
               race_key: 'SK_RACE_B',
               race_id: 1002,
-              season_year: 2021,
+              race_year: 2021,
               round_number: 2,
               race_name: 'Test Race B',
               race_display_name: '2021 - Test Race B',
@@ -189,7 +189,7 @@ unit_tests:
           - {
               race_key: 'SK_RACE_C',
               race_id: 1003,
-              season_year: 2019,
+              race_year: 2019,
               round_number: 3,
               race_name: 'Test Race C',
               race_display_name: '2019 - Test Race C',

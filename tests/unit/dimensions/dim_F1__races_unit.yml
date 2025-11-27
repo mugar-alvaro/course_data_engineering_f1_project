@@ -52,7 +52,7 @@ unit_tests:
         - {
             race_key: 'SK_RACE_1',
             race_id: 101,
-            season_year: 2020,
+            race_year: 2020,
             round_number: 1,
             race_name: 'Austrian Grand Prix',
             race_display_name: '2020 - Austrian Grand Prix',
@@ -69,7 +69,7 @@ unit_tests:
         - {
             race_key: 'SK_RACE_2',
             race_id: 102,
-            season_year: 2020,
+            race_year: 2020,
             round_number: 2,
             race_name: 'Styrian Grand Prix',
             race_display_name: '2020 - Styrian Grand Prix',
@@ -86,7 +86,7 @@ unit_tests:
         - {
             race_key: 'SK_RACE_3',
             race_id: 201,
-            season_year: 2021,
+            race_year: 2021,
             round_number: 5,
             race_name: 'Monaco Grand Prix',
             race_display_name: '2021 - Monaco Grand Prix',

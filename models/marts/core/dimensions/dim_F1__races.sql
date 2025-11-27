@@ -25,7 +25,7 @@ business_enriched as (
     select
         race_surrogate_key                      as race_key,
         race_id,
-        race_year                               as season_year,
+        race_year,
         race_round                              as round_number,
         race_name,
         race_year || ' - ' || race_name         as race_display_name,

@@ -195,7 +195,7 @@ models:
           - not_null
           - unique
 
-      - name: season_year
+      - name: race_year
         description: "Season year in which the race takes place."
         data_type: number
         tests:

@@ -1,0 +1,39 @@
+version: 2
+
+unit_tests:
+  - name: dim_F1__seasons_logic_unit_test
+    description: "Validates the business logic in dim_F1__seasons: season_name construction, season_decade calculation, and season_era classification."
+    model: dim_F1__seasons
+
+    given:
+      - input: ref('stg_F1__seasons')
+        rows:
+          - { season_surrogate_key: 'SK_1984', season_year: 1984 }
+          - { season_surrogate_key: 'SK_1999', season_year: 1999 }
+          - { season_surrogate_key: 'SK_2020', season_year: 2020 }
+
+    expect:
+      rows:
+        - {
+            season_key: 'SK_1984',
+            season_year: 1984,
+            season_name: 'Season 1984',
+            season_decade: 1980,
+            season_era: 'CLASSIC'
+          }
+
+        - {
+            season_key: 'SK_1999',
+            season_year: 1999,
+            season_name: 'Season 1999',
+            season_decade: 1990,
+            season_era: 'MODERN'
+          }
+
+        - {
+            season_key: 'SK_2020',
+            season_year: 2020,
+            season_name: 'Season 2020',
+            season_decade: 2020,
+            season_era: 'HYBRID_ERA'
+          }

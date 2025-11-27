@@ -1,0 +1,123 @@
+version: 2
+
+unit_tests:
+  - name: dim_F1__circuits_logic_unit_test
+    description: "Validates the business logic in dim_F1__circuits: display name, hemisphere, altitude_category, and is_high_altitude_circuit."
+    model: dim_F1__circuits
+
+    given:
+      - input: ref('stg_F1__circuits')
+        rows:
+          - {
+              circuit_surrogate_key: 'SK_MONZA',
+              circuit_id: 1,
+              circuit_referency: 'monza',
+              circuit_name: 'Monza',
+              city: 'Monza',
+              country: 'Italy',
+              latitude: 45.6,
+              longitude: 9.3,
+              altitude_meters: 50
+            }
+
+          - {
+              circuit_surrogate_key: 'SK_INTERLAGOS',
+              circuit_id: 2,
+              circuit_referency: 'interlagos',
+              circuit_name: 'Interlagos',
+              city: 'São Paulo',
+              country: 'Brazil',
+              latitude: -23.7,
+              longitude: -46.7,
+              altitude_meters: 760
+            }
+
+          - {
+              circuit_surrogate_key: 'SK_MEXICO',
+              circuit_id: 3,
+              circuit_referency: 'hermanos_rodriguez',
+              circuit_name: 'Autódromo Hermanos Rodríguez',
+              city: 'Mexico City',
+              country: 'Mexico',
+              latitude: 19.4,
+              longitude: -99.1,
+              altitude_meters: 2250
+            }
+
+          - {
+              circuit_surrogate_key: 'SK_UNKNOWN_ALT',
+              circuit_id: 4,
+              circuit_referency: 'unknown_alt',
+              circuit_name: 'Unknown Alt Circuit',
+              city: 'Somewhere',
+              country: 'Nowhere',
+              latitude: -5.0,
+              longitude: 10.0,
+              altitude_meters: null
+            }
+
+    expect:
+      rows:
+        - {
+            circuit_key: 'SK_MONZA',
+            circuit_id: 1,
+            circuit_reference: 'monza',
+            circuit_name: 'Monza',
+            circuit_display_name: 'Monza (Monza, Italy)',
+            city: 'Monza',
+            country: 'Italy',
+            latitude: 45.6,
+            longitude: 9.3,
+            altitude_meters: 50,
+            hemisphere: 'NORTH',
+            altitude_category: 'LOW',
+            is_high_altitude_circuit: false
+          }
+
+        - {
+            circuit_key: 'SK_INTERLAGOS',
+            circuit_id: 2,
+            circuit_reference: 'interlagos',
+            circuit_name: 'Interlagos',
+            circuit_display_name: 'Interlagos (São Paulo, Brazil)',
+            city: 'São Paulo',
+            country: 'Brazil',
+            latitude: -23.7,
+            longitude: -46.7,
+            altitude_meters: 760,
+            hemisphere: 'SOUTH',
+            altitude_category: 'MEDIUM',
+            is_high_altitude_circuit: false
+          }
+
+        - {
+            circuit_key: 'SK_MEXICO',
+            circuit_id: 3,
+            circuit_reference: 'hermanos_rodriguez',
+            circuit_name: 'Autódromo Hermanos Rodríguez',
+            circuit_display_name: 'Autódromo Hermanos Rodríguez (Mexico City, Mexico)',
+            city: 'Mexico City',
+            country: 'Mexico',
+            latitude: 19.4,
+            longitude: -99.1,
+            altitude_meters: 2250,
+            hemisphere: 'NORTH',
+            altitude_category: 'HIGH',
+            is_high_altitude_circuit: true
+          }
+
+        - {
+            circuit_key: 'SK_UNKNOWN_ALT',
+            circuit_id: 4,
+            circuit_reference: 'unknown_alt',
+            circuit_name: 'Unknown Alt Circuit',
+            circuit_display_name: 'Unknown Alt Circuit (Somewhere, Nowhere)',
+            city: 'Somewhere',
+            country: 'Nowhere',
+            latitude: -5.0,
+            longitude: 10.0,
+            altitude_meters: null,
+            hemisphere: 'SOUTH',
+            altitude_category: 'UNKNOWN',
+            is_high_altitude_circuit: false
+          }

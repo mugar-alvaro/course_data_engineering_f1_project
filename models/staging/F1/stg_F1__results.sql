@@ -51,7 +51,7 @@ cleaned as (
         cast(points as number(3,1))                                  as race_points,
         cast(laps as number(3,0))                                    as race_laps_completed,
         cast(milliseconds as number(20,0))                           as race_duration_milliseconds,
-        {{ f1_clean_fastest_lap('fastestLap', 'laps') }}             as race_fastest_lap,
+        {{ f1_clean_fastest_lap('fastestLap', 'laps') }}::number(15,5) as race_fastest_lap,
         {{ f1_flag_inconsistent_fastest_lap('fastestLap', 'laps') }} as is_inconsistent_fastest_lap,
         cast(rank as number(3,0))                                    as race_fastest_lap_rank,
         {{ f1_time_to_ms('fastestLapTime') }}::number(15,0)          as race_fastest_lap_time_milliseconds,

@@ -1,0 +1,97 @@
+version: 2
+
+unit_tests:
+  - name: mart_F1__driver_racecraft_performance_basic_metrics_unit_test
+    description: "Validates that mart_F1__driver_racecraft_performance correctly computes racecraft metrics by driver and season."
+    model: mart_F1__driver_racecraft_performance
+
+    overrides:
+      macros:
+        is_incremental: false
+
+    given:
+      - input: ref('fct_F1__race_results')
+        rows:
+          - {
+              driver_key: 'DRV_1',
+              season_key: 'SEASON_2020',
+
+              race_grid_position: 10,
+              race_final_position_order: 5,
+              race_points: 10,
+              status_outcome: 'FINISHED'
+            }
+
+          - {
+              driver_key: 'DRV_1',
+              season_key: 'SEASON_2020',
+
+              race_grid_position: 15,
+              race_final_position_order: 8,
+              race_points: 4,
+              status_outcome: 'FINISHED'
+            }
+
+          - {
+              driver_key: 'DRV_1',
+              season_key: 'SEASON_2020',
+
+              race_grid_position: 3,
+              race_final_position_order: 3,
+              race_points: 0,
+              status_outcome: 'DNF'
+            }
+
+          - {
+              driver_key: 'DRV_1',
+              season_key: 'SEASON_2020',
+
+              race_grid_position: null,
+              race_final_position_order: null,
+              race_points: 0,
+              status_outcome: 'NOT_STARTED_OR_CLASSIFIED'
+            }
+
+      - input: ref('dim_F1__drivers')
+        rows:
+          - {
+              driver_key: 'DRV_1',
+              driver_id: 1,
+              driver_reference: 'doe',
+              driver_full_name: 'John Doe',
+              driver_display_name: 'J. Doe',
+              driver_code: 'JDO'
+            }
+
+      - input: ref('dim_F1__seasons')
+        rows:
+          - {
+              season_key: 'SEASON_2020',
+              season_year: 2020,
+              season_name: 'Season 2020',
+              season_decade: 2020,
+              season_era: 'HYBRID_ERA'
+            }
+
+    expect:
+      rows:
+        - {
+            driver_key: 'DRV_1',
+            driver_full_name: 'John Doe',
+            driver_display_name: 'J. Doe',
+            driver_code: 'JDO',
+            season_year: 2020,
+            season_era: 'HYBRID_ERA',
+
+            races_count: 4,
+
+            avg_positions_gained: 4.0,
+            finish_ratio: 0.5,
+            dnf_ratio: 0.25,
+
+            avg_points_per_race: 3.5,
+            points_finish_ratio: 0.5,
+
+            salvage_ratio: 1.0,
+            throw_away_ratio: 1.0
+          }

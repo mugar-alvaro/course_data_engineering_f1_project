@@ -70,8 +70,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_F1__races')
-              field: race_id
+              arguments:
+                to: ref('stg_F1__races')
+                field: race_id
 
       - name: constructor_surrogate_key
         description: "Surrogate key referencing the constructor."
@@ -83,8 +84,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_F1__constructors')
-              field: constructor_id
+              arguments:
+                to: ref('stg_F1__constructors')
+                field: constructor_id
 
       - name: constructor_points
         description: "Points scored by the constructor in the race."

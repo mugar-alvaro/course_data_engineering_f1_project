@@ -1,0 +1,100 @@
+version: 2
+
+unit_tests:
+  - name: mart_F1__circuit_performance_basic_metrics_unit_test
+    description: "Validates that mart_F1__circuit_performance correctly computes aggregated metrics by circuit and season_era."
+    model: mart_F1__circuit_performance
+
+    overrides:
+      macros:
+        is_incremental: false
+
+    given:
+      - input: ref('fct_F1__race_results')
+        rows:
+          - {
+              circuit_key: 'CIR_1',
+              season_key: 'SEASON_2020',
+
+              race_points: 25,
+              race_final_position_order: 1,
+              race_grid_position: 1,
+              status_outcome: 'FINISHED',
+              pit_stop_count: 2,
+              best_lap_time_milliseconds: 75000
+            }
+
+          - {
+              circuit_key: 'CIR_1',
+              season_key: 'SEASON_2020',
+
+              race_points: 0,
+              race_final_position_order: null,
+              race_grid_position: 2,
+              status_outcome: 'DNF',
+              pit_stop_count: 1,
+              best_lap_time_milliseconds: 76000
+            }
+
+      - input: ref('dim_F1__circuits')
+        rows:
+          - {
+              circuit_key: 'CIR_1',
+              circuit_id: 100,
+              circuit_reference: 'c1',
+              circuit_name: 'Test Circuit',
+              circuit_display_name: 'Test Circuit (City1, Country1)',
+              city: 'City1',
+              country: 'Country1',
+              latitude: 0.0,
+              longitude: 0.0,
+              altitude_meters: 100,
+              hemisphere: 'NORTH',
+              altitude_category: 'LOW',
+              is_high_altitude_circuit: false
+            }
+
+      - input: ref('dim_F1__seasons')
+        rows:
+          - {
+              season_key: 'SEASON_2020',
+              season_year: 2020,
+              season_name: 'Season 2020',
+              season_decade: 2020,
+              season_era: 'HYBRID_ERA'
+            }
+
+    expect:
+      rows:
+        - {
+            circuit_key: 'CIR_1',
+            season_era: 'HYBRID_ERA',
+
+            circuit_name: 'Test Circuit',
+            circuit_display_name: 'Test Circuit (City1, Country1)',
+            circuit_country: 'Country1',
+            circuit_city: 'City1',
+            altitude_meters: 100,
+            altitude_category: 'LOW',
+            is_high_altitude_circuit: false,
+            hemisphere: 'NORTH',
+
+            driver_race_count: 2,
+            distinct_seasons_count: 1,
+            distinct_decades_count: 1,
+
+            avg_positions_gained: 0.0,
+            gain_positions_ratio: 0.0,
+            lose_positions_ratio: 0.0,
+
+            points_finish_ratio: 0.5,
+            avg_grid_position_points_finishers: 1.0,
+            pole_to_win_ratio: 1.0,
+
+            dnf_ratio: 0.5,
+            finished_ratio: 0.5,
+            disqualified_ratio: 0.0,
+
+            avg_pit_stops_per_entry: 1.5,
+            avg_best_lap_time_ms: 75500
+          }

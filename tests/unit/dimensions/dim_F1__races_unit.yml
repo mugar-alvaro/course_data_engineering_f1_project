@@ -1,0 +1,101 @@
+version: 2
+
+unit_tests:
+  - name: dim_F1__races_logic_unit_test
+    description: "Validates the business logic in dim_F1__races: season_year, round_number, race_display_name, race_datetime_utc and calendar attributes."
+    model: dim_F1__races
+
+    given:
+      - input: ref('stg_F1__races')
+        rows:
+          - {
+              race_surrogate_key: 'SK_RACE_1',
+              race_id: 101,
+              race_year: 2020,
+              race_round: 1,
+              race_name: 'Austrian Grand Prix',
+              circuit_surrogate_key: 'SK_CIRCUIT_1',
+              circuit_id: 1,
+              race_date: '2020-07-05',
+              race_time_of_day: '15:10:00',
+              ingestion_timestamp: '2025-01-01 00:00:00'
+            }
+
+          - {
+              race_surrogate_key: 'SK_RACE_2',
+              race_id: 102,
+              race_year: 2020,
+              race_round: 2,
+              race_name: 'Styrian Grand Prix',
+              circuit_surrogate_key: 'SK_CIRCUIT_1',
+              circuit_id: 1,
+              race_date: '2020-07-12',
+              race_time_of_day: null,
+              ingestion_timestamp: '2025-01-01 00:00:00'
+            }
+
+          - {
+              race_surrogate_key: 'SK_RACE_3',
+              race_id: 201,
+              race_year: 2021,
+              race_round: 5,
+              race_name: 'Monaco Grand Prix',
+              circuit_surrogate_key: 'SK_CIRCUIT_2',
+              circuit_id: 2,
+              race_date: '2021-05-23',
+              race_time_of_day: '14:00:00',
+              ingestion_timestamp: '2025-01-01 00:00:00'
+            }
+
+    expect:
+      rows:
+        - {
+            race_key: 'SK_RACE_1',
+            race_id: 101,
+            race_year: 2020,
+            round_number: 1,
+            race_name: 'Austrian Grand Prix',
+            race_display_name: '2020 - Austrian Grand Prix',
+            circuit_surrogate_key: 'SK_CIRCUIT_1',
+            circuit_id: 1,
+            race_date: '2020-07-05',
+            race_time_of_day: '15:10:00',
+            race_datetime_utc: '2020-07-05 15:10:00',
+            race_weekday_name: 'Sun',
+            race_month_number: 7,
+            race_month_name: 'Jul'
+          }
+
+        - {
+            race_key: 'SK_RACE_2',
+            race_id: 102,
+            race_year: 2020,
+            round_number: 2,
+            race_name: 'Styrian Grand Prix',
+            race_display_name: '2020 - Styrian Grand Prix',
+            circuit_surrogate_key: 'SK_CIRCUIT_1',
+            circuit_id: 1,
+            race_date: '2020-07-12',
+            race_time_of_day: null,
+            race_datetime_utc: '2020-07-12 00:00:00',
+            race_weekday_name: 'Sun',
+            race_month_number: 7,
+            race_month_name: 'Jul'
+          }
+
+        - {
+            race_key: 'SK_RACE_3',
+            race_id: 201,
+            race_year: 2021,
+            round_number: 5,
+            race_name: 'Monaco Grand Prix',
+            race_display_name: '2021 - Monaco Grand Prix',
+            circuit_surrogate_key: 'SK_CIRCUIT_2',
+            circuit_id: 2,
+            race_date: '2021-05-23',
+            race_time_of_day: '14:00:00',
+            race_datetime_utc: '2021-05-23 14:00:00',
+            race_weekday_name: 'Sun',
+            race_month_number: 5,
+            race_month_name: 'May'
+          }

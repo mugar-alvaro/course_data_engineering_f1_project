@@ -11,10 +11,10 @@ with source as (
 
 business_enriched as (
     select
-        season_surrogate_key as season_key,
+        season_surrogate_key         as season_key,
         season_year,
-        'Season ' || season_year           as season_name,
-        floor(season_year / 10) * 10       as season_decade,
+        'Season ' || season_year     as season_name,
+        floor(season_year / 10) * 10 as season_decade,
         case
             when season_year < 1990 then 'CLASSIC'
             when season_year between 1990 and 2013 then 'MODERN'
